@@ -1,0 +1,14 @@
+name: trustchain
+channels:
+  - javascript
+dependencies:
+  - python=2.7
+  - pip:
+    - cryptography
+    - libnacl
+    - netifaces
+    - Twisted
+    - pyOpenSSL
+    - six
+    - nose
+    - coverage
