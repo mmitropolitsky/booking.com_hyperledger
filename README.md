@@ -20,23 +20,23 @@ You can use [Anaconda](https://conda.io/docs/index.html) in order to setup a pyt
 
 ### IPv8
 
-Clone the repo : `git clone https://github.com/Tribler/py-ipv8`
+Clone the repo : `git clone https://github.com/Tribler/py-ipv8.git pyipv8`
 
 Install dependencies (not necessary if you used the virtual environment YAML config file) :
+
 `pip install --upgrade -r requirements.txt`
 `pip install nose coverage yappi service_identity`
 
-Install the module :
-`pip install -e py-ipv8/`
-
 Run tests : 
-    * Windows : `py-ipv8/run_all_tests_windows.bat`
-    * Linux : `py-ipv8/run_all_tests_unix.sh`
+    * Windows : `pyipv8/run_all_tests_windows.bat`
+    * Linux : `pyipv8/run_all_tests_unix.sh`
 
 ### Run the overlay tutorial
 
 Follow the steps of the [overlay tutorial](https://github.com/Tribler/py-ipv8/blob/master/doc/overlay_tutorial.md)
 
-*Note* : with the provided I had errors where pyipv8 is not recognized as a module, you can copy `ipv8_service.py` to the top-level folder (the one where you create `__init__.py` and `main.py`) and mangle the import statements :
-`from pyipv8.ipv8_service import something` => `from ipv8_service import something`
-`from ipv8.some_submodule import something` => `from ipv8.some_submodule import something`
+*Note* : with the provided I had errors where pyipv8 is not recognized as a module, so I got errors on the import statements where the modules were not found. If that is the case you can add the top-level folder (the one where you
+create `__init__.py` and `main.py`) to the Python path. Insert the following at the top of `main.py` :
+`import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))`
