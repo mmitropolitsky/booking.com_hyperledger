@@ -10,5 +10,8 @@ dependencies:
     - Twisted
     - pyOpenSSL
     - six
+    # test dependencies
     - nose
     - coverage
+    - yappi
+    - service_identity

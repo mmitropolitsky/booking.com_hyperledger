@@ -4,3 +4,7 @@
 # Overlay tutorial generated files
 sqlite
 *.pem
+
+# Overlay tutorial user generated files
+__init__.py
+main.py
