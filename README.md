@@ -1,71 +1,53 @@
-# blockchain_booking
+# Blockchain Booking
 
-## Setup
+## Overview
 
-[Install the requirements](https://conda.io/docs/user-guide/install/index.html#system-requirements)\
-TL;DR :
-* [Python 2.7, 3.4, 3.5 or 3.6](https://www.python.org/downloads/)
+For details about the business case itself, see [Problem description](docs/problem_description/problem_description.md)
 
-### Visual Studio
+We chose to focus on the **Overbooking** sub-problem, at least for now. As such we mainly consider the following actors:
+* Partner
+* OTA
 
-If working with Visual Studio, install [C++ Build Tools for Visual Studio](https://visualstudio.microsoft.com/downloads/)
+## Hyperledger Fabric Setup
 
-### \[Optional\] Python virtual environment
+1. [Install the pre-requisites](https://hyperledger-fabric.readthedocs.io/en/latest/prereqs.html)
+2. [Install the samples, binaries and Docker images](https://hyperledger-fabric.readthedocs.io/en/latest/install.html) \
+**IMPORTANT** : the docker combined docker images amount to ~16GB, the samples are ~160MB
+3. [Install the necessary SDK](https://hyperledger-fabric.readthedocs.io/en/latest/getting_started.html#hyperledger-fabric-sdks) \
+*or simply use the maven dependencies definitions in overbooking/pom.xml for the Java SDK*
+4. [Optional] [Install Hyperledger Composer](https://hyperledger.github.io/composer/latest/installing/installing-index.html) \
+*Note* : this is a development tool to facilitate the definition of **assets** ; see [Known issues](docs/knwon_issues.md) if running into issues
 
-You can setup a virtual environment to easily manage the interpreter version, packages and module to use for this project
-without affecting the rest of the system. There are several solutions to setup such an environment :
+## Hyperledger Architecture
 
-#### Anaconda
+The logical components of Hyperledger Fabric are :
+* **Assets** : tangible or intangible assets being traded/modified in the application (here *rental assets*)
+* **Chaincode** : smart contracts exposing functions to operate on **assets**.
+* **Blockchain** : the immutable chain where the data is stored. In Fabric it is decomposed in two components :
+    * **State** : current state of the chain (a Key-Value Store)
+    * **Ledger** : a historical ledger of all transactions since genesis block
+* **Nodes** : the nodes involved in the different operations / management of the network
+    * **Client nodes** : nodes that invoke *transactions* on **chaincode**
+    * **Peer nodes** : nodes that maintain the **state** and **ledger**. Additionally they can *endorse* or reject 
+    *transaction-invocations* from **client nodes**.
+    * **Orderer nodes** : nodes that compose the *Ordering service* used by **clients** and **peers** to communicate.
+    This service is responsible for guaranteeing the *total-ordering* of the messages.
 
-You can use [Anaconda](https://conda.io/docs/index.html) in order to setup a python virtual environment for the project :
+More details about these components can be found in [Hyperledger Architecture Summary](docs/architecture/summary.md)
 
-1. Install dependencies : `pip install pycosat PyYAML requests`
-2. [Install Anaconda](https://conda.io/docs/user-guide/install/index.html#regular-installation)
-3. Clone this repo : `git clone https://github.com/pumicerD/blockchain_booking.git`
-4. Go to the cloned directory
-5. [Create the virtual environment](https://conda.io/docs/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file)
-using the environment config file\
-TL;DR : `conda env create -f environment.yml`
-6. Activate the virtual environment :
-    * Windows : `activate trustchain`
-    * Linux and macOS : `conda activate trustchain`
 
-#### Pyenv
+### Transaction flow
 
-See documentation for [Pyenv](https://github.com/pyenv/pyenv-virtualenv)
+A summary of the Hyperledger Transaction flow is :
+1. **client** sends a *transaction proposal* to the target **chaincode**'s endorsers
+2. **endorsers** simulate the transaction and *endorse* or reject
+3. **client** collects enough *endorsements* to satisfy the **chaincode**'s *endorsement policy*
+4. *ordering service* *delivers* the endorsed transaction to all **peers** to update **state** and **ledger**
 
-#### Virtualenv wrapper
+See the illustration below for a visual representation of the common-case transaction flow :
 
-See documentation for [Virtualenv wrapper](https://pypi.org/project/virtualenvwrapper/)
+![Common-case transaction flow](https://hyperledger-fabric.readthedocs.io/en/latest/_images/flow-4.png)
 
-#### Using a virtual environment with PyCharm
+More details can be found at [Transaction Flow details](docs/transaction_flow/summary.md) and on the official documentation : 
+[Hyperledger Transaction Flow Explained](https://hyperledger-fabric.readthedocs.io/en/latest/txflow.html)
 
-1. Import the project
-2. Go to *File > Settings*
-3. Expand the project's entry in the left menu
-4. Under *Project Interpreter*, click the settings icon next to the name of the current interpreter (default)
-5. Select *Add*
-6. Select your virtual environment (virtualenv, conda, etc ...)
-
-### IPv8
-
-Clone the repo : `git clone https://github.com/Tribler/py-ipv8.git pyipv8`
-
-Install dependencies (not necessary if you used the virtual environment YAML config file) :
-
-`pip install --upgrade -r requirements.txt`\
-`pip install nose coverage yappi service_identity`
-
-*Note* : there might be issues installing Netifaces and Twisted on Windows. See [Known Issues](docs/known-issues.md)
-
-Run tests :
-* Windows : `pyipv8/run_all_tests_windows.bat`
-* Linux : `pyipv8/run_all_tests_unix.sh`
-
-*Note* : there might be issues about *libnacl* and/or *libsodium* not being found. See [Known Issues](docs/known-issues.md)
-
-### Run the overlay tutorial
-
-Follow the steps of the [overlay tutorial](https://github.com/Tribler/py-ipv8/blob/master/doc/overlay_tutorial.md)
-
-*Note* : if encountering errors with the import statements, see [Known Issues](docs/known-issues.md)
