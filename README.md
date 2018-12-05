@@ -51,3 +51,5 @@ See the illustration below for a visual representation of the common-case transa
 More details can be found at [Transaction Flow details](docs/transaction_flow/summary.md) and on the official documentation : 
 [Hyperledger Transaction Flow Explained](https://hyperledger-fabric.readthedocs.io/en/latest/txflow.html)
 
+Our Architecture Scheme Using Hyperledger Fabric
+https://github.com/pumicerD/blockchain_booking/blob/master/hyperledger/hyper.jpg
