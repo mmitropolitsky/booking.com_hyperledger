@@ -52,4 +52,5 @@ More details can be found at [Transaction Flow details](docs/transaction_flow/su
 [Hyperledger Transaction Flow Explained](https://hyperledger-fabric.readthedocs.io/en/latest/txflow.html)
 
 Our Architecture Scheme Using Hyperledger Fabric
-https://github.com/pumicerD/blockchain_booking/blob/master/hyperledger/hyper.jpg
+
+![Architecture Overview](docs/architecture/overview.jpg)
