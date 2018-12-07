@@ -11,13 +11,13 @@ Organizations:
   # SampleOrg defines an MSP using the sampleconfig.  It should never be used
   # in production but may be used as a template for other definitions
   - &OrdererOrg
-    Name: OrdererOrg
+    Name: BookingOrderer
 
     # ID to load the MSP definition as
     ID: OrdererMSP
 
     # MSPDir is the filesystem path which contains the MSP configuration
-    MSPDir: crypto-config/ordererOrganizations/example.com/msp
+    MSPDir: crypto-config/ordererOrganizations/eitbooking.overbooking.com/msp
 
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
@@ -36,12 +36,12 @@ Organizations:
   - &Org1
     # DefaultOrg defines the organization which is used in the sampleconfig
     # of the fabric.git development environment
-    Name: Org1MSP
+    Name: OTA1
 
     # ID to load the MSP definition as
-    ID: Org1MSP
+    ID: Ota1MSP
 
-    MSPDir: crypto-config/peerOrganizations/org1.example.com/msp
+    MSPDir: crypto-config/peerOrganizations/ota1.eitbooking.overbooking.com/msp
 
     # Policies defines the set of policies at this level of the config tree
     # For organization policies, their canonical path is usually
@@ -62,38 +62,7 @@ Organizations:
       # AnchorPeers defines the location of peers which can be used
       # for cross org gossip communication.  Note, this value is only
       # encoded in the genesis block in the Application section context
-      - Host: peer0.org1.example.com
-        Port: 7051
-
-  - &Org2
-    # DefaultOrg defines the organization which is used in the sampleconfig
-    # of the fabric.git development environment
-    Name: Org2MSP
-
-    # ID to load the MSP definition as
-    ID: Org2MSP
-
-    MSPDir: crypto-config/peerOrganizations/org2.example.com/msp
-
-    # Policies defines the set of policies at this level of the config tree
-    # For organization policies, their canonical path is usually
-    #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
-    Policies:
-      Readers:
-        Type: Signature
-        Rule: "OR('Org2MSP.admin', 'Org2MSP.peer', 'Org2MSP.client')"
-      Writers:
-        Type: Signature
-        Rule: "OR('Org2MSP.admin', 'Org2MSP.client')"
-      Admins:
-        Type: Signature
-        Rule: "OR('Org2MSP.admin')"
-
-    AnchorPeers:
-      # AnchorPeers defines the location of peers which can be used
-      # for cross org gossip communication.  Note, this value is only
-      # encoded in the genesis block in the Application section context
-      - Host: peer0.org2.example.com
+      - Host: peer0.ota1.eitbooking.overbooking.com
         Port: 7051
 
 ################################################################################
@@ -198,7 +167,7 @@ Orderer: &OrdererDefaults
   OrdererType: solo
 
   Addresses:
-    - orderer.example.com:7050
+    - orderer.eitbooking.overbooking.com:7050
 
   # Batch Timeout: The amount of time to wait before creating a batch
   BatchTimeout: 2s
@@ -289,7 +258,7 @@ Channel: &ChannelDefaults
 ################################################################################
 Profiles:
 
-  TwoOrgsOrdererGenesis:
+  BasicOrdererGenesis:
     <<: *ChannelDefaults
     Orderer:
       <<: *OrdererDefaults
@@ -301,13 +270,12 @@ Profiles:
       SampleConsortium:
         Organizations:
           - *Org1
-          - *Org2
-  TwoOrgsChannel:
+    #      - *Org2
+  BasicChannel:
     Consortium: SampleConsortium
     Application:
       <<: *ApplicationDefaults
       Organizations:
         - *Org1
-        - *Org2
       Capabilities:
         <<: *ApplicationCapabilities

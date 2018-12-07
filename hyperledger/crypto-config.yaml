@@ -1,21 +1,15 @@
 OrdererOrgs:
-  - Name: Orderer
-    Domain: overbooking.com
+  - Name: BookingOrderer
+    Domain: eitbooking.overbooking.com
     Specs :
       - Hostname: orderer
 
 PeerOrgs:
-  - Name: Booking
-    Domain: booking.overbooking.com
-    EnableNodeOUs: true
-    Template:
-      Count: 2
-    Users:
-      Count: 1
-
-  - Name: Airbnb
-    Domain: airbnb.overbooking.com
-    EnableNodeOUs: true
+  - Name: OTA1
+    Domain: ota1.eitbooking.overbooking.com
+    # Enable Node Organizaztional Units
+    EnableNodeOUs: false
+    # A template specifies the number of peers to instanciate with the above PeerOrg config settings
     Template:
       Count: 2
     Users:

@@ -1,0 +1,35 @@
+version: '2'
+
+volumes:
+  orderer.eitbooking.overbooking.com:
+  peer0.ota1.eitbooking.overbooking.com:
+  peer1.ota1.eitbooking.overbooking.com:
+
+networks:
+  basicnet:
+
+services:
+
+  orderer.eitbooking.overbooking.com:
+    extends:
+      file:   base/docker-compose-base.yaml
+      service: orderer.eitbooking.overbooking.com
+    container_name: orderer.eitbooking.overbooking.com
+    networks:
+      - basicnet
+
+  peer0.ota1.eitbooking.overbooking.com:
+    container_name: peer0.ota1.eitbooking.overbooking.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.ota1.eitbooking.overbooking.com
+    networks:
+      - basicnet
+
+  peer1.ota1.eitbooking.overbooking.com:
+    container_name: peer1.ota1.eitbooking.overbooking.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer1.ota1.eitbooking.overbooking.com
+    networks:
+      - basicnet
