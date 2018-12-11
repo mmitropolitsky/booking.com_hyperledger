@@ -39,4 +39,6 @@ We will need to generate certificates, private-public key pairs, etc... To do so
 *Note* : if you need another target architecture than *amd64* or another version than 1.3.0, replace with the desired 
 tag from [Hyperledger Docker Images Tags](https://hub.docker.com/r/hyperledger/fabric-orderer/tags/)
 `export COMPOSE_PROJECT_NAME=Basic` \
-`docker-compose -f docker-compose.yaml up -d`
+`docker-compose -f docker-compose.yaml up -d` \
+For more details on the contents of this configuration file (`docker-compose.yaml`) see [Peer configuration](../architecture/peers/configuration/peer_container_images.md)
+7. Install the chaincode on the **peers** (*TODO*)
