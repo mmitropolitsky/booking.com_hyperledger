@@ -54,3 +54,7 @@ More details can be found at [Transaction Flow details](docs/transaction_flow/su
 Our Architecture Scheme Using Hyperledger Fabric
 
 ![Architecture Overview](docs/architecture/overview.jpg)
+
+## Overbooking system
+
+See [Running the Network](docs/overbooking/running_the_network.md)
