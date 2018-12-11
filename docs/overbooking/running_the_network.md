@@ -3,7 +3,7 @@
 The domain structure will be :
 * eitbooking : the "root" of the subdomains in the system
     * overbooking : where the OTAs and Partners interact for overbooking logic
-    * transactions : where Trusted Third Parties (TTP) and OTAs can 'negociate' Private Transaction Certificates
+    * transactions : where Trusted Third Parties (TTP) and OTAs can 'negotiate' Private Transaction Certificates
 
 ## Pre-requisites
 
