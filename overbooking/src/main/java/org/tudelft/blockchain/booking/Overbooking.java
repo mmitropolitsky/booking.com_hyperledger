@@ -73,4 +73,8 @@ public class Overbooking extends ChaincodeBase {
             return newErrorResponse(e);
         }
     }
+
+    public static void main(String[] args) {
+        new Overbooking().start(args);
+    }
 }
