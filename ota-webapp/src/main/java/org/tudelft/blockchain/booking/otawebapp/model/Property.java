@@ -11,5 +11,5 @@ public class Property {
     private String address;
     private String description;
     private Collection<DateInterval> availableIntervals = new HashSet<>();
-    private String test;
+
 }
