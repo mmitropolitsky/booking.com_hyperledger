@@ -4,7 +4,6 @@ import org.springframework.stereotype.Component;
 import org.tudelft.blockchain.booking.otawebapp.model.DateInterval;
 import org.tudelft.blockchain.booking.otawebapp.repository.PropertyRepository;
 
-import java.time.LocalDate;
 import java.util.Set;
 
 @Component

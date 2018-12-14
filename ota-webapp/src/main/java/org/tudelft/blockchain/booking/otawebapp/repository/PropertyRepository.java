@@ -19,6 +19,8 @@ public class PropertyRepository {
     }
 
     public Set<DateInterval> getAvailableDates(int propertyId, DateInterval dateInterval) {
+        System.out.println("asdf");
         return new HashSet<>();
+
     }
 }
