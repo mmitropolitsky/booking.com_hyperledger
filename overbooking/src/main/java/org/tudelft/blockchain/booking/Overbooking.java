@@ -1,3 +1,5 @@
+package org.tudelft.blockchain.booking;
+
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.hyperledger.fabric.shim.ChaincodeBase;
@@ -13,7 +15,7 @@ public class Overbooking extends ChaincodeBase {
 
     public Response init(ChaincodeStub stub) {
         try {
-            _logger.debug("Initiating Overbooking chaincode");
+            _logger.debug("Initiating org.tudelft.blockchain.booking.Overbooking chaincode");
             String function = stub.getFunction();
 
             if (!function.equals("init"))
@@ -70,5 +72,9 @@ public class Overbooking extends ChaincodeBase {
         } catch (Throwable e) {
             return newErrorResponse(e);
         }
+    }
+
+    public static void main(String[] args) {
+        new Overbooking().start(args);
     }
 }
