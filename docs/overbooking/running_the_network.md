@@ -18,6 +18,8 @@ To generate the required certificates, we will need to execute the `cryptogen` b
 do so easily you can add the samples `bin` folder to your PATH environment variable.
 
 ## Creating the network
+A good guide to all of this:
+https://hyperledger-fabric.readthedocs.io/en/release-1.3/build_network.html#install-prerequisites
 
 We will need to generate certificates, private-public key pairs, etc... To do so :
 
