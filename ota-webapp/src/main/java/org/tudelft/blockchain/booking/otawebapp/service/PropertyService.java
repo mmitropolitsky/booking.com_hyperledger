@@ -1,10 +1,11 @@
 package org.tudelft.blockchain.booking.otawebapp.service;
 
 import org.springframework.stereotype.Component;
-import org.tudelft.blockchain.booking.otawebapp.model.DateInterval;
+import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.DateAvailabilityPair;
 import org.tudelft.blockchain.booking.otawebapp.repository.PropertyRepository;
 
-import java.util.Set;
+import java.time.LocalDate;
+import java.util.Collection;
 
 @Component
 public class PropertyService {
@@ -15,12 +16,9 @@ public class PropertyService {
         this.propertyRepository = propertyRepository;
     }
 
-    public Set<DateInterval> getAvailableDates(int propertyId) {
-        return propertyRepository.getAvailableDates(propertyId);
-    }
 
-    public Set<DateInterval> getAvailableDates(int propertyId, DateInterval dateInterval) {
-        return propertyRepository.getAvailableDates(propertyId);
+    public Collection<DateAvailabilityPair> getAvailableDates(String propertyId, LocalDate startDate, LocalDate endDate) {
+        return propertyRepository.getAvailableDates(propertyId, startDate, endDate);
     }
 
 }

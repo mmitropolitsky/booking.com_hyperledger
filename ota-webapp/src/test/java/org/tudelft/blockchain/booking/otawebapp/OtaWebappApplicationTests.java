@@ -12,5 +12,4 @@ public class OtaWebappApplicationTests {
     @Test
     public void contextLoads() {
     }
-
 }
