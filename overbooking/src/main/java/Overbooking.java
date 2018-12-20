@@ -7,9 +7,27 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-public class Overbooking extends ChaincodeBase {
+public class OverbookingChainCode extends ChaincodeBase {
+
+    public enum BookingStatus {
+        AVAILABLE, BOOKED
+    }
 
     private static Logger _logger = LogManager.getLogger(Overbooking.class);
+
+    //private static final Map<String, String> bookingStore = new HashMap<String, String>() {};
+
+    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("DD-MM-YYYY");
+
+    //Using formatter to create String of the "2019-01-01" format  from LocalDateTime
+    private String convertToString(LocalDateTime currentDate){
+        return currentDate.format(this.dateFormatter);
+    }
+
+    //Using formatter to create LocalDateTime of a "2019-01-01" formatted String
+    private LocalDateTime convertFromString(String stringOfCurrentDate){
+        return LocalDateTime.parse(stringOfCurrentDate, this.dateFormatter);
+    }
 
     public Response init(ChaincodeStub stub) {
         try {
@@ -24,9 +42,14 @@ public class Overbooking extends ChaincodeBase {
             if (args.size() != 1)
                 return newErrorResponse("Incorrect number of arguments. Expecting 1");
 
-            // Initialize the chaincode
-            stub.putStringState("availableFrom", "01-01-2019");
-            stub.putStringState("availableTill", "31-12-2019");
+            //Initialize content of the booking store
+            //Adding the next 500 days to the state as (day, availability) key value pairs
+            //Each day is an object in the state
+            for (int i = 0; i < 500; i++) {
+
+                stub.putStringState(convertToString(LocalDateTime.now().plusDays(i)), BookingStatus.AVAILABLE);
+
+            }
 
             return newSuccessResponse();
         } catch (Throwable e) {
@@ -53,22 +76,50 @@ public class Overbooking extends ChaincodeBase {
 
     private Response book(ChaincodeStub stub, List<String> params) {
         try {
-            DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-YYYY");
-            LocalDateTime bookingStart = LocalDateTime.from(dateFormat.parse(params.get(0))),
-                bookingEnd = LocalDateTime.from(dateFormat.parse(params.get(1))),
-                availableFrom = LocalDateTime.from(dateFormat.parse(stub.getStringState("availableFrom"))),
-                availableTill = LocalDateTime.from(dateFormat.parse(stub.getStringState("availableTill")));
+            LocalDateTime bookingStart = convertFromString(params.get(0)),
+                          bookingEnd = convertFromString(params.get(1));
 
-            if (bookingStart.isAfter(availableFrom)
-                    && bookingEnd.isBefore(availableTill)) {
-                stub.putStringState("unavailableFrom", params.get(0));
-                stub.putStringState("unavailableTill", params.get(1));
-            } else
-                return newErrorResponse("Invalid booking dates !");
+            if(isBookable(stub, bookingStart, bookingEnd)){
+                doBooking(stub, bookingStart, bookingEnd);
+                return newSuccessResponse();
+            }
+            else {
+                //TODO
+                //Implement returning the unavailable dates
+                return newErrorResponse("Invalid booking dates!");
+            }
 
-            return newSuccessResponse();
         } catch (Throwable e) {
             return newErrorResponse(e);
         }
+    }
+
+    private Boolean isBookable(ChaincodeStub stub, LocalDateTime bookingStart, LocalDateTime bookingEnd) {
+
+        while(bookingStart!=bookingEnd){
+
+            //Retrieve information about overall availability
+            if(stub.getState(this.convertToString(bookingStart))==BookingStatus.BOOKED){
+                return FALSE;
+            }
+            bookingStart.plusDays(1);
+        }
+
+        return TRUE;
+    }
+
+    private void doBooking(ChaincodeStub stub, LocalDateTime bookingStart, LocalDateTime bookingEnd){
+
+        while(bookingStart!=bookingEnd){
+
+            //Update the booking status for each date of the booking
+            stub.delState(this.convertToString(bookingStart));
+            stub.putStringState(this.convertToString(bookingStart), BookingStatus.BOOKED);
+            bookingStart.plusDays(1);
+        }
+    }
+
+    public static void main(String[] args) {
+        new OverbookingChainCode().start(args);
     }
 }
