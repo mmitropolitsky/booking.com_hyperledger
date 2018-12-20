@@ -51,10 +51,11 @@ See the illustration below for a visual representation of the common-case transa
 More details can be found at [Transaction Flow details](docs/transaction_flow/summary.md) and on the official documentation : 
 [Hyperledger Transaction Flow Explained](https://hyperledger-fabric.readthedocs.io/en/latest/txflow.html)
 
+## Overbooking system
+
 Our Architecture Scheme Using Hyperledger Fabric
 
 ![Architecture Overview](docs/architecture/overview.jpg)
 
-## Overbooking system
-
-See [Running the Network](docs/overbooking/running_the_network.md)
+See [Running the Network](docs/overbooking/running_the_network.md) to get the current implementation of this system 
+running !

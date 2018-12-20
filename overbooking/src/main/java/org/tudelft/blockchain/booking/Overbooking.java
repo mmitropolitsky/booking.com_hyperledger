@@ -1,3 +1,5 @@
+package org.tudelft.blockchain.booking;
+
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.hyperledger.fabric.shim.ChaincodeBase;
@@ -31,7 +33,7 @@ public class OverbookingChainCode extends ChaincodeBase {
 
     public Response init(ChaincodeStub stub) {
         try {
-            _logger.debug("Initiating Overbooking chaincode");
+            _logger.debug("Initiating org.tudelft.blockchain.booking.Overbooking chaincode");
             String function = stub.getFunction();
 
             if (!function.equals("init"))
@@ -94,6 +96,7 @@ public class OverbookingChainCode extends ChaincodeBase {
         }
     }
 
+<<<<<<< HEAD:overbooking/src/main/java/Overbooking.java
     private Boolean isBookable(ChaincodeStub stub, LocalDateTime bookingStart, LocalDateTime bookingEnd) {
 
         while(bookingStart!=bookingEnd){
@@ -121,5 +124,9 @@ public class OverbookingChainCode extends ChaincodeBase {
 
     public static void main(String[] args) {
         new OverbookingChainCode().start(args);
+=======
+    public static void main(String[] args) {
+        new Overbooking().start(args);
+>>>>>>> 7cd99e2e406c53f9a87440bc5ad1a6e8d1832f4a:overbooking/src/main/java/org/tudelft/blockchain/booking/Overbooking.java
     }
 }

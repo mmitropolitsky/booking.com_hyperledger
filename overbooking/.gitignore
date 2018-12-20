@@ -1,0 +1,21 @@
+.gradle
+build
+gradle
+!gradle/wrapper/gradle-wrapper.jar
+gradlew.bat
+gradlew
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out
+target
+
+### NetBeans ###
+nbproject/private
+nbbuild
+dist
+nbdist
+.nb-gradle
