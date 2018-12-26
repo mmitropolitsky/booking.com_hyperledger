@@ -196,6 +196,7 @@ Orderer: &OrdererDefaults
   # Organizations is the list of orgs which are defined as participants on
   # the orderer side of the network
   Organizations:
+    - *OrdererOrg
 
   # Policies defines the set of policies at this level of the config tree
   # For Orderer policies, their canonical path is

@@ -9,9 +9,9 @@ services:
 
   orderer.eitbooking.overbooking.com:
     container_name: orderer.eitbooking.overbooking.com
-    image: hyperledger/fabric-orderer:$IMAGE_TAG
+    image: hyperledger/fabric-orderer:amd64-1.3.0
     environment:
-      - ORDERER_GENERAL_LOGLEVEL=INFO
+      - ORDERER_GENERAL_LOGLEVEL=DEBUG
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
       - ORDERER_GENERAL_GENESISMETHOD=file
       - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
@@ -59,7 +59,7 @@ services:
       service: peer-base
     environment:
       - CORE_PEER_ID=peer1.ota1.eitbooking.overbooking.com
-      - CORE_PEER_ADDRESS=peer1.ota1.eitbooking.overbooking.com
+      - CORE_PEER_ADDRESS=peer1.ota1.eitbooking.overbooking.com:7051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.ota1.eitbooking.overbooking.com:7051
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.ota1.eitbooking.overbooking.com:7051
       - CORE_PEER_LOCALMSPID=Ota1MSP
