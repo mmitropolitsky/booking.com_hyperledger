@@ -1,0 +1,74 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+services:
+
+  orderer.eitbooking.overbooking.com:
+    container_name: orderer.eitbooking.overbooking.com
+    image: hyperledger/fabric-orderer:amd64-1.3.0
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=DEBUG
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      # enabled TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    volumes:
+    - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+    - ../crypto-config/ordererOrganizations/eitbooking.overbooking.com/orderers/orderer.eitbooking.overbooking.com/msp:/var/hyperledger/orderer/msp
+    - ../crypto-config/ordererOrganizations/eitbooking.overbooking.com/orderers/orderer.eitbooking.overbooking.com/tls/:/var/hyperledger/orderer/tls
+    - orderer.eitbooking.overbooking.com:/var/hyperledger/production/orderer
+    ports:
+      - 7050:7050
+
+  peer0.ota1.eitbooking.overbooking.com:
+    container_name: peer0.ota1.eitbooking.overbooking.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.ota1.eitbooking.overbooking.com
+      - CORE_PEER_ADDRESS=peer0.ota1.eitbooking.overbooking.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.ota1.eitbooking.overbooking.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.ota1.eitbooking.overbooking.com:7051
+      - CORE_PEER_LOCALMSPID=Ota1MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/ota1.eitbooking.overbooking.com/peers/peer0.ota1.eitbooking.overbooking.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/ota1.eitbooking.overbooking.com/peers/peer0.ota1.eitbooking.overbooking.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.ota1.eitbooking.overbooking.com:/var/hyperledger/production
+    ports:
+      - 7051:7051
+      - 7053:7053
+
+  peer1.ota1.eitbooking.overbooking.com:
+    container_name: peer1.ota1.eitbooking.overbooking.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.ota1.eitbooking.overbooking.com
+      - CORE_PEER_ADDRESS=peer1.ota1.eitbooking.overbooking.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.ota1.eitbooking.overbooking.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.ota1.eitbooking.overbooking.com:7051
+      - CORE_PEER_LOCALMSPID=Ota1MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/ota1.eitbooking.overbooking.com/peers/peer1.ota1.eitbooking.overbooking.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/ota1.eitbooking.overbooking.com/peers/peer1.ota1.eitbooking.overbooking.com/tls:/etc/hyperledger/fabric/tls
+        - peer1.ota1.eitbooking.overbooking.com:/var/hyperledger/production
+
+    ports:
+      - 8051:7051
+      - 8053:7053
