@@ -1,5 +1,6 @@
 package org.tudelft.blockchain.booking;
 
+import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.hyperledger.fabric.shim.ChaincodeBase;
@@ -9,13 +10,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+
 public class OverbookingChainCode extends ChaincodeBase {
 
-    public enum BookingStatus {
-        AVAILABLE, BOOKED
-    }
-
-    private static Logger _logger = LogManager.getLogger(Overbooking.class);
+    private static Logger _logger = LogManager.getLogger(OverbookingChainCode.class);
 
     //private static final Map<String, String> bookingStore = new HashMap<String, String>() {};
 
@@ -34,6 +34,7 @@ public class OverbookingChainCode extends ChaincodeBase {
     public Response init(ChaincodeStub stub) {
         try {
             _logger.debug("Initiating org.tudelft.blockchain.booking.Overbooking chaincode");
+
             String function = stub.getFunction();
 
             if (!function.equals("init"))
@@ -49,7 +50,7 @@ public class OverbookingChainCode extends ChaincodeBase {
             //Each day is an object in the state
             for (int i = 0; i < 500; i++) {
 
-                stub.putStringState(convertToString(LocalDateTime.now().plusDays(i)), BookingStatus.AVAILABLE);
+                stub.putStringState(convertToString(LocalDateTime.now().plusDays(i)), "0");
 
             }
 
@@ -96,13 +97,14 @@ public class OverbookingChainCode extends ChaincodeBase {
         }
     }
 
-<<<<<<< HEAD:overbooking/src/main/java/Overbooking.java
     private Boolean isBookable(ChaincodeStub stub, LocalDateTime bookingStart, LocalDateTime bookingEnd) {
 
         while(bookingStart!=bookingEnd){
 
             //Retrieve information about overall availability
-            if(stub.getState(this.convertToString(bookingStart))==BookingStatus.BOOKED){
+
+            String currentAvailability = new String(stub.getState(this.convertToString(bookingStart)));
+            if(currentAvailability.equals("1")){
                 return FALSE;
             }
             bookingStart.plusDays(1);
@@ -117,16 +119,14 @@ public class OverbookingChainCode extends ChaincodeBase {
 
             //Update the booking status for each date of the booking
             stub.delState(this.convertToString(bookingStart));
-            stub.putStringState(this.convertToString(bookingStart), BookingStatus.BOOKED);
+            stub.putStringState(this.convertToString(bookingStart), "1");
             bookingStart.plusDays(1);
         }
     }
 
     public static void main(String[] args) {
+
+        BasicConfigurator.configure();
         new OverbookingChainCode().start(args);
-=======
-    public static void main(String[] args) {
-        new Overbooking().start(args);
->>>>>>> 7cd99e2e406c53f9a87440bc5ad1a6e8d1832f4a:overbooking/src/main/java/org/tudelft/blockchain/booking/Overbooking.java
     }
 }
