@@ -5,9 +5,10 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.hyperledger.fabric.shim.ChaincodeBase;
 import org.hyperledger.fabric.shim.ChaincodeStub;
+import org.hyperledger.fabric.shim.ledger.KeyValue;
+import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
@@ -33,9 +34,7 @@ public class OverbookingChainCode extends ChaincodeBase {
                 return newErrorResponse("Incorrect number of arguments. Expecting 1");
 
             for (int i = 0; i < 500; i++) {
-
                 stub.putStringState(LocalDate.now().plusDays(i).toString(), "0");
-
             }
 
             return newSuccessResponse();
@@ -63,25 +62,16 @@ public class OverbookingChainCode extends ChaincodeBase {
     }
 
     //Executes booking if the dates are available and returns success message
-    //Else it returns error message
+    //Checking if input string is a LocalDate of ISO_LOCAL_DATE format
+    //If not returns error response
     private Response book(ChaincodeStub stub, List<String> params) {
         try {
+            LocalDate bookingStart = LocalDate.parse(params.get(0));
+            LocalDate bookingEnd = LocalDate.parse(params.get(1));
 
-            LocalDate bookingStart = LocalDate.now();
-            LocalDate bookingEnd = LocalDate.now();
-
-            //Checking if input string is a LocalDate of ISO_LOCAL_DATE format
-            try {
-                bookingStart = LocalDate.parse(params.get(0), DateTimeFormatter.ofPattern("YYYY-MM-DD"));
-                bookingEnd = LocalDate.parse(params.get(1), DateTimeFormatter.ofPattern("YYYY-MM-DD"));
-            } catch (DateTimeParseException excep) {
-                return newErrorResponse("Please specify valid dates of the \"YYYY-MM-DD\" pattern!");
-            }
-
-            if (bookingStart.isEqual(bookingEnd) || bookingStart.isAfter(bookingEnd)) {
+            if (bookingStart.isAfter(bookingEnd)) {
                 return newErrorResponse("Please specify an end date after the start date!");
             }
-
 
             if (isBookable(stub, bookingStart, bookingEnd)) {
                 doBooking(stub, bookingStart, bookingEnd);
@@ -92,23 +82,20 @@ public class OverbookingChainCode extends ChaincodeBase {
                 return newErrorResponse("Invalid booking dates!");
             }
 
-        } catch (Throwable e) {
-            return newErrorResponse(e);
+        } catch (Throwable excep) {
+            return newErrorResponse("Please specify valid dates of the \"YYYY-MM-DD\" pattern!");
         }
     }
 
     //Retrieve information about overall availability
     private boolean isBookable(ChaincodeStub stub, LocalDate bookingStart, LocalDate bookingEnd) {
 
-        while (bookingStart != bookingEnd) {
-
-            String currentAvailability = new String(stub.getState(bookingStart.toString()));
-            if (currentAvailability.equals("1")) {
+        QueryResultsIterator<KeyValue> currentInterval = stub.getStateByRange(bookingStart.toString(), bookingEnd.toString());
+        for (KeyValue currentDate : currentInterval) {
+            if (currentDate.getStringValue().equals("1")) {
                 return false;
             }
-            bookingStart.plusDays(1);
         }
-
         return true;
     }
 
@@ -117,7 +104,6 @@ public class OverbookingChainCode extends ChaincodeBase {
 
         while (bookingStart != bookingEnd) {
 
-            stub.delState(bookingStart.toString());
             stub.putStringState(bookingStart.toString(), "1");
             bookingStart.plusDays(1);
         }
