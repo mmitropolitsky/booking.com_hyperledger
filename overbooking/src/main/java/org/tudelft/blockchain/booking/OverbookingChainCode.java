@@ -6,34 +6,21 @@ import org.apache.log4j.Logger;
 import org.hyperledger.fabric.shim.ChaincodeBase;
 import org.hyperledger.fabric.shim.ChaincodeStub;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
-
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
 
 public class OverbookingChainCode extends ChaincodeBase {
 
     private static Logger _logger = LogManager.getLogger(OverbookingChainCode.class);
 
-    //private static final Map<String, String> bookingStore = new HashMap<String, String>() {};
-
-    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("DD-MM-YYYY");
-
-    //Using formatter to create String of the "2019-01-01" format  from LocalDateTime
-    private String convertToString(LocalDateTime currentDate){
-        return currentDate.format(this.dateFormatter);
-    }
-
-    //Using formatter to create LocalDateTime of a "2019-01-01" formatted String
-    private LocalDateTime convertFromString(String stringOfCurrentDate){
-        return LocalDateTime.parse(stringOfCurrentDate, this.dateFormatter);
-    }
-
+    //Initialize content of the booking store
+    //Adding the next 500 days to the state as (day, availability) key value pairs
+    //Each day is represented as an object in the state
     public Response init(ChaincodeStub stub) {
         try {
-            _logger.debug("Initiating org.tudelft.blockchain.booking.Overbooking chaincode");
+            _logger.debug("Initiating org.tudelft.blockchain.booking.overbookingchaincode");
 
             String function = stub.getFunction();
 
@@ -45,12 +32,9 @@ public class OverbookingChainCode extends ChaincodeBase {
             if (args.size() != 1)
                 return newErrorResponse("Incorrect number of arguments. Expecting 1");
 
-            //Initialize content of the booking store
-            //Adding the next 500 days to the state as (day, availability) key value pairs
-            //Each day is an object in the state
             for (int i = 0; i < 500; i++) {
 
-                stub.putStringState(convertToString(LocalDateTime.now().plusDays(i)), "0");
+                stub.putStringState(LocalDate.now().plusDays(i).toString(), "0");
 
             }
 
@@ -61,6 +45,7 @@ public class OverbookingChainCode extends ChaincodeBase {
 
     }
 
+    //Implements invoke method of the chaincode executing the booking
     public Response invoke(ChaincodeStub stub) {
         try {
             _logger.info("Invoke java simple chaincode");
@@ -77,16 +62,31 @@ public class OverbookingChainCode extends ChaincodeBase {
         }
     }
 
+    //Executes booking if the dates are available and returns success message
+    //Else it returns error message
     private Response book(ChaincodeStub stub, List<String> params) {
         try {
-            LocalDateTime bookingStart = convertFromString(params.get(0)),
-                          bookingEnd = convertFromString(params.get(1));
 
-            if(isBookable(stub, bookingStart, bookingEnd)){
+            LocalDate bookingStart = LocalDate.now();
+            LocalDate bookingEnd = LocalDate.now();
+
+            //Checking if input string is a LocalDate of ISO_LOCAL_DATE format
+            try {
+                bookingStart = LocalDate.parse(params.get(0), DateTimeFormatter.ofPattern("YYYY-MM-DD"));
+                bookingEnd = LocalDate.parse(params.get(1), DateTimeFormatter.ofPattern("YYYY-MM-DD"));
+            } catch (DateTimeParseException excep) {
+                return newErrorResponse("Please specify valid dates of the \"YYYY-MM-DD\" pattern!");
+            }
+
+            if (bookingStart.isEqual(bookingEnd) || bookingStart.isAfter(bookingEnd)) {
+                return newErrorResponse("Please specify an end date after the start date!");
+            }
+
+
+            if (isBookable(stub, bookingStart, bookingEnd)) {
                 doBooking(stub, bookingStart, bookingEnd);
                 return newSuccessResponse();
-            }
-            else {
+            } else {
                 //TODO
                 //Implement returning the unavailable dates
                 return newErrorResponse("Invalid booking dates!");
@@ -97,36 +97,37 @@ public class OverbookingChainCode extends ChaincodeBase {
         }
     }
 
-    private Boolean isBookable(ChaincodeStub stub, LocalDateTime bookingStart, LocalDateTime bookingEnd) {
+    //Retrieve information about overall availability
+    private boolean isBookable(ChaincodeStub stub, LocalDate bookingStart, LocalDate bookingEnd) {
 
-        while(bookingStart!=bookingEnd){
+        while (bookingStart != bookingEnd) {
 
-            //Retrieve information about overall availability
-
-            String currentAvailability = new String(stub.getState(this.convertToString(bookingStart)));
-            if(currentAvailability.equals("1")){
-                return FALSE;
+            String currentAvailability = new String(stub.getState(bookingStart.toString()));
+            if (currentAvailability.equals("1")) {
+                return false;
             }
             bookingStart.plusDays(1);
         }
 
-        return TRUE;
+        return true;
     }
 
-    private void doBooking(ChaincodeStub stub, LocalDateTime bookingStart, LocalDateTime bookingEnd){
+    //Update the booking status for each date of the booking
+    private void doBooking(ChaincodeStub stub, LocalDate bookingStart, LocalDate bookingEnd) {
 
-        while(bookingStart!=bookingEnd){
+        while (bookingStart != bookingEnd) {
 
-            //Update the booking status for each date of the booking
-            stub.delState(this.convertToString(bookingStart));
-            stub.putStringState(this.convertToString(bookingStart), "1");
+            stub.delState(bookingStart.toString());
+            stub.putStringState(bookingStart.toString(), "1");
             bookingStart.plusDays(1);
         }
     }
 
     public static void main(String[] args) {
 
+        //Configuring log4j logger
         BasicConfigurator.configure();
+
         new OverbookingChainCode().start(args);
     }
 }
