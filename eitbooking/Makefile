@@ -40,6 +40,9 @@ run: anchor
 createchannel:
 	$(CLI_PEER) channel create -o $(ORDERER):$(ORDERER_PORT) -c $(CHANNEL_NAME) -f $(CHANNEL_DIR)/channel.tx --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/eitbooking.overbooking.com/orderers/$(ORDERER)/msp/tlscacerts/tlsca.eitbooking.overbooking.com-cert.pem
 
+joinchannel:
+	$(CLI_PEER) channel join -b basic.block
+
 installcc:
 	$(CLI_PEER) chaincode install -l java -n $(CHAINCODE_NAME) -v v0 -p $(CHAINCODE_DIR)/$(CHAINCODE_NAME)
 
