@@ -1,12 +1,18 @@
-package org.tudelft.blockchain.booking.client.endpoint;
+package org.tudelft.blockchain.booking.ca.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.tudelft.blockchain.booking.ca.util.ResultDeserializer;
+
+import java.io.Serializable;
 import java.util.List;
 
 
-public class NonceResponse {
+public class NonceResponse implements Serializable {
     private List<String> errors;
     private List<String> messages;
     private boolean success;
+
+    @JsonDeserialize(using = ResultDeserializer.class)
     private Result result;
 
     public NonceResponse() {
