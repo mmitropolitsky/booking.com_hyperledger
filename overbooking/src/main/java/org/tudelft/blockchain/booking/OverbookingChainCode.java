@@ -132,10 +132,13 @@ public class OverbookingChainCode extends ChaincodeBase {
     * */
     private void putDatesWithAvailability(ChaincodeStub stub, List<LocalDate> params, String isBooked) {
 
-        while (params.get(0) != params.get(1)) {
+        LocalDate startDate = params.get(0);
+        LocalDate endDate = params.get(1);
 
-            stub.putStringState(params.get(0).toString(), isBooked);
-            params.get(1).plusDays(1);
+        while (startDate.isBefore(endDate)) {
+
+            stub.putStringState(startDate.toString(), isBooked);
+            startDate = startDate.plusDays(1);
         }
     }
 
