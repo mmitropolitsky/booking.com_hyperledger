@@ -1,6 +1,5 @@
 package org.tudelft.blockchain.booking;
 
-import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.hyperledger.fabric.shim.ChaincodeBase;
@@ -9,88 +8,112 @@ import org.hyperledger.fabric.shim.ledger.KeyValue;
 import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
+import java.util.Arrays;
 import java.util.List;
 
 public class OverbookingChainCode extends ChaincodeBase {
 
-    private static Logger _logger = LogManager.getLogger(OverbookingChainCode.class);
+    private static Logger logger = LogManager.getLogger(OverbookingChainCode.class);
 
-    //Initialize content of the booking store
-    //Adding the next 500 days to the state as (day, availability) key value pairs
-    //Each day is represented as an object in the state
+    @Override
     public Response init(ChaincodeStub stub) {
         try {
-            _logger.debug("Initiating org.tudelft.blockchain.booking.overbookingchaincode");
+            logger.debug("Initiating " + this.getClass().getCanonicalName());
 
             String function = stub.getFunction();
 
-            if (!function.equals("init"))
+            if (!"init".equals(function))
                 return newErrorResponse("function other than init is not supported");
 
             List<String> args = stub.getParameters();
 
-            if (args.size() != 1)
-                return newErrorResponse("Incorrect number of arguments. Expecting 1");
 
-            for (int i = 0; i < 500; i++) {
-                stub.putStringState(LocalDate.now().plusDays(i).toString(), "0");
+            //If no time range specified add the next 500 days to the store
+            if (args.size() == 0){
+                putDatesWithAvailability(stub, Arrays.asList(LocalDate.now(),LocalDate.now().plusDays(500)), "0");
+            }
+            else if(args.size() == 2){
+                List<LocalDate> validatedParams = validateDateParams(stub.getParameters());
+                putDatesWithAvailability(stub, validatedParams, "0");
+            }
+            else{
+                return newErrorResponse("Incorrect number of arguments. Expecting 0");
             }
 
             return newSuccessResponse();
         } catch (Throwable e) {
             return newErrorResponse(e);
         }
-
     }
 
-    //Implements invoke method of the chaincode executing the booking
+    /**
+     * Implements invoke method of the chaincode executing the booking
+     * Invoked by the OTA
+     */
+    @Override
     public Response invoke(ChaincodeStub stub) {
-        try {
-            _logger.info("Invoke java simple chaincode");
-            String func = stub.getFunction();
-            List<String> params = stub.getParameters();
 
-            if (func.equals("book")) {
-                return book(stub, params);
+        String function = stub.getFunction();
+
+        //TODO
+        //ADD: PO may book a date
+        List<LocalDate> validatedParams = validateDateParams(stub.getParameters());
+
+        //OTA may check availability
+        if ("isBookable".equals(function)) {
+            if (isBookable(stub, validatedParams)) {
+                return newSuccessResponse();
+            } else {
+                return newErrorResponse("Invalid booking dates!");
+            }
+        }
+
+        //OTA may book a date
+        if ("book".equals(function)) {
+            return book(stub, validatedParams);
+        }
+        return newErrorResponse("Function not found.");
+    }
+
+    private List<LocalDate> validateDateParams(List<String> params) {
+        List<LocalDate> validatedParams = null;
+        try {
+            if (params.size() != 2) {
+                throw new Exception("Incorrect number of arguments. Expecting 2");
             }
 
-            return newErrorResponse("Invalid invoke function name. Expecting one of: [\"book\", ]");
+            LocalDate bookingStart = LocalDate.parse(params.get(0));
+            LocalDate bookingEnd = LocalDate.parse(params.get(1));
+
+            if (bookingStart.isAfter(bookingEnd)) {
+                throw new Exception("Please specify an end date after the start date!");
+            }
+            validatedParams = Arrays.asList(bookingStart, bookingEnd);
         } catch (Throwable e) {
-            return newErrorResponse(e);
         }
+        return validatedParams;
     }
 
     //Executes booking if the dates are available and returns success message
     //Checking if input string is a LocalDate of ISO_LOCAL_DATE format
     //If not returns error response
-    private Response book(ChaincodeStub stub, List<String> params) {
-        try {
-            LocalDate bookingStart = LocalDate.parse(params.get(0));
-            LocalDate bookingEnd = LocalDate.parse(params.get(1));
+    private Response book(ChaincodeStub stub, List<LocalDate> params) {
+        if (isBookable(stub, params)) {
 
-            if (bookingStart.isAfter(bookingEnd)) {
-                return newErrorResponse("Please specify an end date after the start date!");
-            }
-
-            if (isBookable(stub, bookingStart, bookingEnd)) {
-                doBooking(stub, bookingStart, bookingEnd);
-                return newSuccessResponse();
-            } else {
-                //TODO
-                //Implement returning the unavailable dates
-                return newErrorResponse("Invalid booking dates!");
-            }
-
-        } catch (Throwable excep) {
-            return newErrorResponse("Please specify valid dates of the \"YYYY-MM-DD\" pattern!");
+            //Update the booking status for each date of the booking
+            putDatesWithAvailability(stub, params,"1");
+            return newSuccessResponse();
+        } else {
+            //TODO
+            //Implement returning the unavailable dates
+            return newErrorResponse("Invalid booking dates!");
         }
     }
 
     //Retrieve information about overall availability
-    private boolean isBookable(ChaincodeStub stub, LocalDate bookingStart, LocalDate bookingEnd) {
+    private boolean isBookable(ChaincodeStub stub, List<LocalDate> params) {
 
-        QueryResultsIterator<KeyValue> currentInterval = stub.getStateByRange(bookingStart.toString(), bookingEnd.toString());
+        QueryResultsIterator<KeyValue> currentInterval = stub.getStateByRange(params.get(0).toString(), params.get(1).toString());
         for (KeyValue currentDate : currentInterval) {
             if (currentDate.getStringValue().equals("1")) {
                 return false;
@@ -99,20 +122,24 @@ public class OverbookingChainCode extends ChaincodeBase {
         return true;
     }
 
-    //Update the booking status for each date of the booking
-    private void doBooking(ChaincodeStub stub, LocalDate bookingStart, LocalDate bookingEnd) {
+    /*
+    * Put the specified dates with the booking value into the store
+    *
+    * Used by init: to initialize dates as available in the store
+    *
+    * Used by invoke: to set the availability to booked for the specified dates
+    *
+    * */
+    private void putDatesWithAvailability(ChaincodeStub stub, List<LocalDate> params, String isBooked) {
 
-        while (bookingStart != bookingEnd) {
+        while (params.get(0) != params.get(1)) {
 
-            stub.putStringState(bookingStart.toString(), "1");
-            bookingStart.plusDays(1);
+            stub.putStringState(params.get(0).toString(), isBooked);
+            params.get(1).plusDays(1);
         }
     }
 
     public static void main(String[] args) {
-
-        //Configuring log4j logger
-        BasicConfigurator.configure();
 
         new OverbookingChainCode().start(args);
     }
