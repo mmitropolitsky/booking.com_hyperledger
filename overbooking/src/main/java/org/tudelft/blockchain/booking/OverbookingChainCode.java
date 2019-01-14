@@ -8,6 +8,7 @@ import org.hyperledger.fabric.shim.ledger.KeyValue;
 import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,15 +30,21 @@ public class OverbookingChainCode extends ChaincodeBase {
 
 
             //If no time range specified add the next 500 days to the store
-            if (args.size() == 0){
-                putDatesWithAvailability(stub, Arrays.asList(LocalDate.now(),LocalDate.now().plusDays(500)), "0");
-            }
-            else if(args.size() == 2){
-                List<LocalDate> validatedParams = validateDateParams(stub.getParameters());
-                putDatesWithAvailability(stub, validatedParams, "0");
-            }
-            else{
-                return newErrorResponse("Incorrect number of arguments. Expecting 0");
+            if (args.size() == 0) {
+                addDatesWithAvailability(stub, Arrays.asList(LocalDate.now(), LocalDate.now().plusDays(500)), "0");
+            } else if (args.size() == 2) {
+
+                Response validationResponse = validateDateParams(args);
+                if (validationResponse.getStatus() == Response.Status.SUCCESS) {
+                    List<LocalDate> validatedParams = Arrays.asList(LocalDate.parse(args.get(0)),
+                            LocalDate.parse(args.get(1)));
+                    addDatesWithAvailability(stub, validatedParams, "0");
+                } else {
+                    return validationResponse;
+                }
+
+            } else {
+                return newErrorResponse("Incorrect number of arguments. Expecting 0 by default (or 2 for specifying a booking range)");
             }
 
             return newSuccessResponse();
@@ -57,14 +64,22 @@ public class OverbookingChainCode extends ChaincodeBase {
 
         //TODO
         //ADD: PO may book a date
-        List<LocalDate> validatedParams = validateDateParams(stub.getParameters());
+
+        List<String> args = stub.getParameters();
+        Response validationResponse = validateDateParams(args);
+
+        if (validationResponse.getStatus() == Response.Status.INTERNAL_SERVER_ERROR) {
+            return validationResponse;
+        }
+
+        List<LocalDate> validatedParams = Arrays.asList(LocalDate.parse(args.get(0)), LocalDate.parse(args.get(1)));
 
         //OTA may check availability
         if ("isBookable".equals(function)) {
             if (isBookable(stub, validatedParams)) {
                 return newSuccessResponse();
             } else {
-                return newErrorResponse("Invalid booking dates!");
+                return notBookableResponse();
             }
         }
 
@@ -75,23 +90,33 @@ public class OverbookingChainCode extends ChaincodeBase {
         return newErrorResponse("Function not found.");
     }
 
-    private List<LocalDate> validateDateParams(List<String> params) {
-        List<LocalDate> validatedParams = null;
-        try {
-            if (params.size() != 2) {
-                throw new Exception("Incorrect number of arguments. Expecting 2");
-            }
+    private Response validateDateParams(List<String> params) {
 
-            LocalDate bookingStart = LocalDate.parse(params.get(0));
-            LocalDate bookingEnd = LocalDate.parse(params.get(1));
-
-            if (bookingStart.isAfter(bookingEnd)) {
-                throw new Exception("Please specify an end date after the start date!");
-            }
-            validatedParams = Arrays.asList(bookingStart, bookingEnd);
-        } catch (Throwable e) {
+        if (params.size() != 2) {
+            return newErrorResponse("Incorrect number of arguments. Expecting 2");
         }
-        return validatedParams;
+
+        /*
+        * DateTimeFormatter dateTimeFormatter = DateTimeFormatter
+                .ofPattern("dd/MM/yyyy")
+                .withResolverStyle(ResolverStyle.STRICT);
+        *
+        * */
+
+        try {
+            LocalDate.parse(params.get(0));
+            LocalDate.parse(params.get(1));
+        } catch (DateTimeParseException e) {
+            return newErrorResponse("Please specify valid dates of the following format: YYYY-MM-DD");
+        }
+
+        LocalDate bookingStart = LocalDate.parse(params.get(0));
+        LocalDate bookingEnd = LocalDate.parse(params.get(1));
+
+        if (bookingStart.isAfter(bookingEnd)) {
+            return newErrorResponse("Please specify an end date after the start date!");
+        }
+        return newSuccessResponse();
     }
 
     //Executes booking if the dates are available and returns success message
@@ -101,12 +126,12 @@ public class OverbookingChainCode extends ChaincodeBase {
         if (isBookable(stub, params)) {
 
             //Update the booking status for each date of the booking
-            putDatesWithAvailability(stub, params,"1");
+            addDatesWithAvailability(stub, params, "1");
             return newSuccessResponse();
         } else {
             //TODO
             //Implement returning the unavailable dates
-            return newErrorResponse("Invalid booking dates!");
+            return notBookableResponse();
         }
     }
 
@@ -123,23 +148,27 @@ public class OverbookingChainCode extends ChaincodeBase {
     }
 
     /*
-    * Put the specified dates with the booking value into the store
-    *
-    * Used by init: to initialize dates as available in the store
-    *
-    * Used by invoke: to set the availability to booked for the specified dates
-    *
-    * */
-    private void putDatesWithAvailability(ChaincodeStub stub, List<LocalDate> params, String isBooked) {
+     * Put the specified dates with the booking value into the store
+     *
+     * Used by init: to initialize dates as available in the store
+     *
+     * Used by invoke: to set the availability to booked for the specified dates
+     *
+     * */
+    private void addDatesWithAvailability(ChaincodeStub stub, List<LocalDate> params, String isBooked) {
 
         LocalDate startDate = params.get(0);
         LocalDate endDate = params.get(1);
 
-        while (startDate.isBefore(endDate)) {
+        while (!startDate.isAfter(endDate)) {
 
             stub.putStringState(startDate.toString(), isBooked);
             startDate = startDate.plusDays(1);
         }
+    }
+
+    private Response notBookableResponse() {
+        return newErrorResponse("The dates specified are not available for booking!");
     }
 
     public static void main(String[] args) {
