@@ -166,11 +166,11 @@ public class OverbookingChainCodeTest {
 
 
     /* Tests for the invoke method of the chaincode
-    *
-    *
-    *
-    *
-    * */
+     *
+     *
+     *
+     *
+     * */
 
 
     @Test
@@ -199,7 +199,7 @@ public class OverbookingChainCodeTest {
 
         // Mocking these date parameters
         List<KeyValue> dates = generateMockKeyValueDateWithAvailabilityByInterval(LocalDate.parse(datesParam.get(0)),
-                                                                    LocalDate.parse(datesParam.get(1)),"1");
+                LocalDate.parse(datesParam.get(1)),"1");
 
         when(chaincodeStub.getFunction()).thenReturn("book");
         when(chaincodeStub.getParameters()).thenReturn(datesParam);
@@ -254,9 +254,9 @@ public class OverbookingChainCodeTest {
     }
 
     /* Method mocking a set of KeyValues
-    *
-    *
-    * */
+     *
+     *
+     * */
     private List<KeyValue> generateMockKeyValueDateWithAvailabilityByInterval(LocalDate startDate, LocalDate endDate, String availability) {
 
         List<KeyValue> localStore = new ArrayList<>();
