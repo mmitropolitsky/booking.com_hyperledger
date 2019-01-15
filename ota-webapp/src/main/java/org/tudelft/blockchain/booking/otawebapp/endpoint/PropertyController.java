@@ -1,14 +1,11 @@
 package org.tudelft.blockchain.booking.otawebapp.endpoint;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.tudelft.blockchain.booking.otawebapp.model.Property;
 import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.DateAvailabilityPair;
-import org.tudelft.blockchain.booking.otawebapp.service.ChainCodeService;
 import org.tudelft.blockchain.booking.otawebapp.service.PropertyService;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collection;
 
 @RestController
@@ -17,23 +14,12 @@ public class PropertyController {
 
     private PropertyService propertyService;
 
-    @Autowired
-    private ChainCodeService chainCodeService;
 
     public PropertyController(PropertyService propertyService) {
         this.propertyService = propertyService;
     }
 
-    @GetMapping
-    public Collection<Property> getAllProperties() {
-        try {
-//            chainCodeService.createChannel();
-            chainCodeService.installChainCode();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return new ArrayList<>();
-    }
+
 
     @GetMapping("/{propertyId}")
     public Property getPropertyById(@PathVariable("propertyId") String propertyId) {
