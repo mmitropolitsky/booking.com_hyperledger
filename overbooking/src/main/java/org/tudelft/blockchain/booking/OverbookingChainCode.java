@@ -12,48 +12,32 @@ import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
 
+
 public class OverbookingChainCode extends ChaincodeBase {
 
     private static Logger logger = LogManager.getLogger(OverbookingChainCode.class);
+    private static final String initFunction = "init";
+    private static final String isBookableFunction = "isBookable";
+    private static final String bookFunction = "book";
 
     @Override
     public Response init(ChaincodeStub stub) {
-        try {
             logger.debug("Initiating " + this.getClass().getCanonicalName());
 
             String function = stub.getFunction();
 
-            if (!"init".equals(function))
+            if (!initFunction.equals(function))
                 return newErrorResponse("function other than init is not supported");
 
             List<String> args = stub.getParameters();
 
-
-            //If no time range specified add the next 500 days to the store
-            if (args.size() == 0) {
-                addDatesWithAvailability(stub, Arrays.asList(LocalDate.now(), LocalDate.now().plusDays(500)), "0");
-            } else if (args.size() == 2) {
-
-                Response validationResponse = validateDateParams(args);
-                if (validationResponse.getStatus() == Response.Status.SUCCESS) {
-                    List<LocalDate> validatedParams = Arrays.asList(LocalDate.parse(args.get(0)),
-                            LocalDate.parse(args.get(1)));
-                    addDatesWithAvailability(stub, validatedParams, "0");
-                } else {
-                    return validationResponse;
-                }
-
-            } else {
+            if (args.size() != 0 && args.size() != 2) {
                 return newErrorResponse("Incorrect number of arguments." +
                         " Expecting 0 by default (or 2 for specifying a booking range). " +
                         "Stub parameters for function [" + stub.getFunction() + "] with size " +
                         "[" + stub.getParameters().size() + "]: [" + stub.getParameters() + "]");
             }
-
-            return newSuccessResponse();
-        } catch (Throwable e) {
-            return newErrorResponse(e);
-        }
+            return initializeDates(stub, args);
     }
 
     /**
@@ -64,10 +48,6 @@ public class OverbookingChainCode extends ChaincodeBase {
     public Response invoke(ChaincodeStub stub) {
 
         String function = stub.getFunction();
-
-        //TODO
-        //ADD: PO may book a date
-
         List<String> args = stub.getParameters();
         Response validationResponse = validateDateParams(args);
 
@@ -78,19 +58,19 @@ public class OverbookingChainCode extends ChaincodeBase {
         List<LocalDate> validatedParams = Arrays.asList(LocalDate.parse(args.get(0)), LocalDate.parse(args.get(1)));
 
         //OTA may check availability
-        if ("isBookable".equals(function)) {
+        if (isBookableFunction.equals(function)) {
             if (isBookable(stub, validatedParams)) {
-                return newSuccessResponse();
+                return newSuccessResponse("The dates specified are available for booking.");
             } else {
                 return notBookableResponse();
             }
         }
 
         //OTA may book a date
-        if ("book".equals(function)) {
+        if (bookFunction.equals(function)) {
             return book(stub, validatedParams);
         }
-        return newErrorResponse("Function not found.");
+        return newErrorResponse("The function specified for the invoke method was not found.");
     }
 
     private Response validateDateParams(List<String> params) {
@@ -98,13 +78,6 @@ public class OverbookingChainCode extends ChaincodeBase {
         if (params.size() != 2) {
             return newErrorResponse("Incorrect number of arguments. Expecting 2");
         }
-
-        /*
-        * DateTimeFormatter dateTimeFormatter = DateTimeFormatter
-                .ofPattern("dd/MM/yyyy")
-                .withResolverStyle(ResolverStyle.STRICT);
-        *
-        * */
 
         try {
             LocalDate.parse(params.get(0));
@@ -119,7 +92,7 @@ public class OverbookingChainCode extends ChaincodeBase {
         if (bookingStart.isAfter(bookingEnd)) {
             return newErrorResponse("Please specify an end date after the start date!");
         }
-        return newSuccessResponse();
+        return newSuccessResponse("Parameters validated successfully");
     }
 
     //Executes booking if the dates are available and returns success message
@@ -129,11 +102,9 @@ public class OverbookingChainCode extends ChaincodeBase {
         if (isBookable(stub, params)) {
 
             //Update the booking status for each date of the booking
-            addDatesWithAvailability(stub, params, "1");
-            return newSuccessResponse();
+            addDatesWithAvailability(stub, params, DateStatus.AVAILABLE.toString());
+            return newSuccessResponse("The time between the following dates was booked successfully: " + params.get(0) + " and " + params.get(1));
         } else {
-            //TODO
-            //Implement returning the unavailable dates
             return notBookableResponse();
         }
     }
@@ -143,11 +114,35 @@ public class OverbookingChainCode extends ChaincodeBase {
 
         QueryResultsIterator<KeyValue> currentInterval = stub.getStateByRange(params.get(0).toString(), params.get(1).toString());
         for (KeyValue currentDate : currentInterval) {
-            if (currentDate.getStringValue().equals("1")) {
+            if (currentDate.getStringValue().equals(DateStatus.BOOKED.toString())) {
                 return false;
             }
         }
         return true;
+    }
+
+    /* Initialize the dates according to the call by the init function
+    *
+    * */
+    private Response initializeDates(ChaincodeStub stub, List<String> arguments) {
+
+        // If no time range specified add the next 500 days to the store
+        if (arguments.size() == 0) {
+            addDatesWithAvailability(stub, Arrays.asList(LocalDate.now(), LocalDate.now().plusDays(500)), DateStatus.AVAILABLE.toString());
+            return newSuccessResponse("Congratulations! Successfully initialized the next 500 days as available!");
+        } else {
+
+            Response validationResponse = validateDateParams(arguments);
+            if (validationResponse.getStatus() == Response.Status.SUCCESS) {
+                List<LocalDate> validatedParams = Arrays.asList(LocalDate.parse(arguments.get(0)),
+                        LocalDate.parse(arguments.get(1)));
+                addDatesWithAvailability(stub, validatedParams, DateStatus.AVAILABLE.toString());
+                return newSuccessResponse("Congratulations! Successfully updated the status as available for the time period of: "
+                                            + validatedParams.get(0) + " and " + validatedParams.get(1) + ".");
+            } else {
+                return validationResponse;
+            }
+        }
     }
 
     /*
