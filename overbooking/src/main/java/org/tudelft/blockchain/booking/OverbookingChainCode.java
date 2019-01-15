@@ -20,7 +20,6 @@ public class OverbookingChainCode extends ChaincodeBase {
     public Response init(ChaincodeStub stub) {
         try {
             logger.debug("Initiating " + this.getClass().getCanonicalName());
-            logger.debug("Stub parameters" + stub.getParameters());
 
             String function = stub.getFunction();
 
@@ -46,7 +45,9 @@ public class OverbookingChainCode extends ChaincodeBase {
 
             } else {
                 return newErrorResponse("Incorrect number of arguments." +
-                        " Expecting 0 by default (or 2 for specifying a booking range). Stub parameters: [" + stub.getParameters() + "]");
+                        " Expecting 0 by default (or 2 for specifying a booking range). " +
+                        "Stub parameters for function [" + stub.getFunction() + "] with size " +
+                        "[" + stub.getParameters().size() + "]: [" + stub.getParameters() + "]");
             }
 
             return newSuccessResponse();

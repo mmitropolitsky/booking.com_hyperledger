@@ -25,7 +25,7 @@ import java.util.Collection;
 @Component
 public class Util {
     public static CAEnrollment getEnrollment(String keyFolderPath,  String keyFileName,  String certFolderPath, String certFileName)
-            throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, CryptoException {
+            throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         PrivateKey key = null;
         String certificate = null;
         InputStream isKey = null;
@@ -57,47 +57,5 @@ public class Util {
         CAEnrollment enrollment = new CAEnrollment(key, certificate);
         return enrollment;
     }
-
-    public static InputStream generateTarGzInputStream(File src, String pathPrefix) throws IOException {
-        File sourceDirectory = src;
-
-        ByteArrayOutputStream bos = new ByteArrayOutputStream(500000);
-
-        String sourcePath = sourceDirectory.getAbsolutePath();
-
-        TarArchiveOutputStream archiveOutputStream = new TarArchiveOutputStream(new GzipCompressorOutputStream(new BufferedOutputStream(bos)));
-        archiveOutputStream.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
-
-        try {
-            Collection<File> childrenFiles = org.apache.commons.io.FileUtils.listFiles(sourceDirectory, null, true);
-
-            ArchiveEntry archiveEntry;
-            FileInputStream fileInputStream;
-            for (File childFile : childrenFiles) {
-                String childPath = childFile.getAbsolutePath();
-                String relativePath = childPath.substring((sourcePath.length() + 1), childPath.length());
-
-                if (pathPrefix != null) {
-                    relativePath = Utils.combinePaths(pathPrefix, relativePath);
-                }
-
-                relativePath = FilenameUtils.separatorsToUnix(relativePath);
-
-                archiveEntry = new TarArchiveEntry(childFile, relativePath);
-                fileInputStream = new FileInputStream(childFile);
-                archiveOutputStream.putArchiveEntry(archiveEntry);
-
-                try {
-                    IOUtils.copy(fileInputStream, archiveOutputStream);
-                } finally {
-                    IOUtils.closeQuietly(fileInputStream);
-                    archiveOutputStream.closeArchiveEntry();
-                }
-            }
-        } finally {
-            IOUtils.closeQuietly(archiveOutputStream);
-        }
-
-        return new ByteArrayInputStream(bos.toByteArray());
-    }
+    
 }

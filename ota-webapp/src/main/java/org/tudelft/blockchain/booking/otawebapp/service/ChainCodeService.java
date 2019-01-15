@@ -16,10 +16,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -156,7 +153,7 @@ public class ChainCodeService {
         }
 
 
-            String[] args = {""};
+        String[] args = new String[0];
         Collection<ProposalResponse> instantiationProposalResponses = fabricRepository.instantiateChainCode(channel, "OverbookingChainCode", "1",
                 "overbooking",
                 TransactionRequest.Type.JAVA.toString(), "init", args, null);
@@ -167,7 +164,6 @@ public class ChainCodeService {
         }
 
     }
-
 
 
     HFCAClient getHfCaClient(String caUrl, Properties caClientProperties) throws Exception {

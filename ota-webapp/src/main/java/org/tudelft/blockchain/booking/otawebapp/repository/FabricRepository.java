@@ -75,6 +75,7 @@ public class FabricRepository {
                 "Instantiate proposal request " + chaincodeName + " on channel " + channel.getName()
                         + " with Fabric client " + hfClient.getUserContext().getMspId() + " "
                         + hfClient.getUserContext().getName());
+
         InstantiateProposalRequest instantiateProposalRequest = hfClient.newInstantiationProposalRequest();
         instantiateProposalRequest.setProposalWaitTime(180000);
         ChaincodeID.Builder chaincodeIDBuilder = ChaincodeID.newBuilder().setName(chaincodeName).setVersion(version).setPath(chaincodePath);
