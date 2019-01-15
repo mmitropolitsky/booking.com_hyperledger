@@ -2,19 +2,27 @@ package org.tudelft.blockchain.booking.otawebapp.service;
 
 import org.apache.milagro.amcl.FP256BN.BIG;
 import org.hyperledger.fabric.sdk.Enrollment;
+import org.hyperledger.fabric.sdk.exception.CryptoException;
 import org.hyperledger.fabric.sdk.idemix.IdemixCredential;
 import org.hyperledger.fabric.sdk.idemix.IdemixPseudonym;
 import org.hyperledger.fabric.sdk.idemix.IdemixSignature;
 import org.hyperledger.fabric.sdk.identity.IdemixEnrollment;
+import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
 import org.hyperledger.fabric_ca.sdk.exception.EnrollmentException;
 import org.hyperledger.fabric_ca.sdk.exception.InvalidArgumentException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.HFUser;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 @Component
 public class CredentialService {
@@ -25,9 +33,17 @@ public class CredentialService {
     private static final String PORT = ":7054";
     private static final String CREDENTIAL_ENDPOINT = "/api/v1/idemix/credential";
 
+    @Value("${org.tudelft.blockchain.booking.admin.username}")
+    String adminUsername;
 
-    @Autowired
-    RestTemplate restTemplate;
+    @Value("${org.tudelft.blockchain.booking.admin.private.key.path}")
+    String adminPrivateKeyPath;
+
+    @Value("${org.tudelft.blockchain.booking.admin.certificate.path}")
+    String adminCertificatePath;
+
+//    @Autowired
+//    RestTemplate restTemplate;
 
 //    public NonceResponse getNonceResponse() {
 //        HttpHeaders headers = new HttpHeaders();
@@ -49,11 +65,27 @@ public class CredentialService {
      * @throws InvalidArgumentException
      */
     public IdemixEnrollment idemixEnroll(HFUser user, String caURL)
-        throws MalformedURLException, EnrollmentException, InvalidArgumentException {
+            throws MalformedURLException, EnrollmentException, InvalidArgumentException,
+            IllegalAccessException, InvocationTargetException,
+            org.hyperledger.fabric.sdk.exception.InvalidArgumentException,
+            InstantiationException, NoSuchMethodException, CryptoException, ClassNotFoundException {
 
         HFCAClient hfcaClient = HFCAClient.createNewInstance(caURL, null);
+        hfcaClient.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
         Enrollment enrollment = hfcaClient.idemixEnroll(user.getEnrollment(), user.getMspId());
         return (IdemixEnrollment) enrollment;
+    }
+
+    public HFUser adminUser(String caURL)
+        throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        File pkFolder = new File(adminPrivateKeyPath);
+        File[] pkFiles = pkFolder.listFiles();
+        File certFolder = new File(adminCertificatePath);
+        File[] certFiles = certFolder.listFiles();
+        Enrollment adminEnrollment =
+                org.tudelft.blockchain.booking.otawebapp.util.Util.getEnrollment
+                        (pkFolder.getPath(), pkFiles[0].getName(), certFolder.getPath(), certFiles[0].getName());
+        return new HFUser(adminUsername, "org1.example.com", "Org1MSP", adminEnrollment);
     }
 
     /**
