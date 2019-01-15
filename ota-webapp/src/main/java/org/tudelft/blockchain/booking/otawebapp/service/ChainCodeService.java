@@ -4,9 +4,9 @@ import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.*;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
-import org.hyperledger.fabric_ca.sdk.exception.EnrollmentException;
 import org.hyperledger.fabric_ca.sdk.helper.Util;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.HFUser;
 import org.tudelft.blockchain.booking.otawebapp.repository.FabricRepository;
@@ -14,7 +14,12 @@ import org.tudelft.blockchain.booking.otawebapp.repository.FabricRepository;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,6 +29,21 @@ public class ChainCodeService {
 
     @Autowired
     FabricRepository fabricRepository;
+
+    @Value("${org.tudelft.blockchain.booking.admin.private.key.path}")
+    String adminPrivateKeyPath;
+
+    @Value("${org.tudelft.blockchain.booking.admin.certificate.path}")
+    String adminCertificatePath;
+
+    @Value("${org.tudelft.blockchain.booking.admin.username}")
+    String adminUsername;
+
+    @Value("${org.tudelft.blockchain.booking.admin.password}")
+    String adminPassword;
+
+    @Value("${org.tudelft.blockchain.booking.chaincode.path}")
+    String chaincodePath;
 
 
     public void createChannel() throws Exception {
@@ -35,8 +55,8 @@ public class ChainCodeService {
 ////        HFCAClient hfcaClient = getHfCaClient("localhost:7054", null);
 //
 ////        ENROLL USER
-//        Enrollment adminEnrollment = caClient.enroll("admin", "adminpw");
-//        HFUser admin = new HFUser("admin", "org1", "Org1MSP", adminEnrollment);
+//        Enrollment adminEnrollment = caClient.enroll(adminUsername, adminPassword);
+//        HFUser admin = new HFUser(adminUsername, "org1", "Org1MSP", adminEnrollment);
 
 
 // GET HF CLIENT
@@ -77,23 +97,25 @@ public class ChainCodeService {
     public void installChainCode() throws InvalidArgumentException, TransactionException,
             IOException, ProposalException, IllegalAccessException, InvocationTargetException,
             InstantiationException, NoSuchMethodException, CryptoException, ClassNotFoundException,
-            EnrollmentException, org.hyperledger.fabric_ca.sdk.exception.InvalidArgumentException, ChaincodeEndorsementPolicyParseException, ExecutionException, InterruptedException {
-
-        String chaincodePath = "/home/milko/Projects/blockchain_booking/overbooking/src/main/java/org/tudelft/blockchain/booking/Overbooking.java";
+            ChaincodeEndorsementPolicyParseException, ExecutionException, InterruptedException,
+            InvalidKeySpecException, NoSuchAlgorithmException {
 
 //        HFClient client = fabricRepository.getHfClient();
 
-        CryptoSuite cryptoSuite = CryptoSuite.Factory.getCryptoSuite();
-        HFCAClient caClient = HFCAClient.createNewInstance("http://localhost:7054", null);
-        caClient.setCryptoSuite(cryptoSuite);
+
+        File pkFolder = new File(adminPrivateKeyPath);
+        File[] pkFiles = pkFolder.listFiles();
+        File certFolder = new File(adminCertificatePath);
+        File[] certFiles = certFolder.listFiles();
+        Enrollment adminEnrollment =
+                org.tudelft.blockchain.booking.otawebapp.util.Util.getEnrollment
+                        (pkFolder.getPath(), pkFiles[0].getName(), certFolder.getPath(), certFiles[0].getName());
+
 
 //        ENROLL USER
-        Enrollment adminEnrollment = caClient.enroll("admin", "adminpw");
-        HFUser admin1 = new HFUser("admin", "org1.example.com", "Org1MSP", adminEnrollment);
+//        Enrollment adminEnrollment = caClient.enroll(adminUsername, adminPassword);
+        HFUser admin1 = new HFUser(adminUsername, "org1.example.com", "Org1MSP", adminEnrollment);
 //        adminEnrollment.
-
-//        Enrollment admin2Enrollment = caClient.enroll("admin", "adminpw");
-//        HFUser admin2 = new HFUser("admin", "org2", "Org2MSP", adminEnrollment);
 
         fabricRepository.setupClient(admin1);
         HFClient client = fabricRepository.getHfClient();
@@ -111,7 +133,9 @@ public class ChainCodeService {
         Orderer orderer = client.newOrderer("orderer.example.com", "grpc://localhost:7050");
         // channel name in fabcar network
         Channel channel = client.newChannel("mychannel");
+
         channel.addPeer(peer10);
+//        channel.joinPeer(peer10);
 //        channel.addPeer(peer11);
 //        channel.addPeer(peer20);
 //        channel.addPeer(peer21);
@@ -123,36 +147,28 @@ public class ChainCodeService {
 //        List<Peer> org2 = Arrays.asList(peer20, peer21);
 
 
-        Collection<ProposalResponse> deployProposalResponses = fabricRepository.deployChainCode("Overbooking",
-                "chaincode", "1", org1);
+        Collection<ProposalResponse> deployProposalResponses = fabricRepository.deployChainCode("OverbookingChainCode",
+                chaincodePath, "1", org1);
 
         for (ProposalResponse res : deployProposalResponses) {
             Logger.getLogger(ChainCodeService.class.getName()).log(Level.INFO,
                     "Overbooking" + "- Chain code deployment " + res.getStatus());
         }
 
-//        client.setUserContext(admin2);
 
-//        Collection<ProposalResponse> deployProposal2Responses = fabricRepository.deployChainCode("Overbooking",
-//                "/home/milko/Projects/blockchain_booking/overbooking", "main/java/org/tudelft/blockchain/booking",
-//                TransactionRequest.Type.JAVA.toString(), "1", org2);
-
-//        for (ProposalResponse res : deployProposal2Responses) {
-//            Logger.getLogger(ChainCodeService.class.getName()).log(Level.INFO,
-//                    "Overbooking" + "- Chain code deployment " + res.getStatus());
-//        }
-
-        String[] args = {""};
-        deployProposalResponses = fabricRepository.instantiateChainCode(channel, "Overbooking", "1",
+            String[] args = {""};
+        Collection<ProposalResponse> instantiationProposalResponses = fabricRepository.instantiateChainCode(channel, "OverbookingChainCode", "1",
                 "overbooking",
                 TransactionRequest.Type.JAVA.toString(), "init", args, null);
 
-        for (ProposalResponse res : deployProposalResponses) {
+        for (ProposalResponse res : instantiationProposalResponses) {
             Logger.getLogger(ChainCodeService.class.getName()).log(Level.INFO,
                     "Overbooking" + "- Chain code instantiation " + res.getStatus());
         }
 
     }
+
+
 
     HFCAClient getHfCaClient(String caUrl, Properties caClientProperties) throws Exception {
         CryptoSuite cryptoSuite = CryptoSuite.Factory.getCryptoSuite();

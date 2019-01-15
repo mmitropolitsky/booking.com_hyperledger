@@ -7,8 +7,8 @@ import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import org.springframework.stereotype.Component;
+import org.tudelft.blockchain.booking.otawebapp.util.Util;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -55,7 +55,10 @@ public class FabricRepository {
         request.setChaincodeID(chaincodeID);
 
         request.setUserContext(hfClient.getUserContext());
+//        request.setChaincodeInputStream(new FileInputStream(codepath + File.separator + "src" + File.separator + "Overbooking.java"));
         request.setChaincodeSourceLocation(new File(codepath));
+        request.setChaincodeMetaInfLocation(new File(codepath + File.separator +  "manifests"));
+//        request.setChaincodeInputStream(Util.generateTarGzInputStream(new File(codepath), "src"));
         request.setChaincodeVersion(version);
         return hfClient.sendInstallProposal(request, peers);
     }

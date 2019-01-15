@@ -1,5 +1,6 @@
 package org.tudelft.blockchain.booking;
 
+import org.hamcrest.core.StringStartsWith;
 import org.hyperledger.fabric.shim.ChaincodeStub;
 import org.hyperledger.fabric.shim.ledger.KeyValue;
 import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
@@ -15,6 +16,7 @@ import java.util.List;
 
 import static org.hyperledger.fabric.shim.Chaincode.Response;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,7 +54,8 @@ public class OverbookingChainCodeTest {
         when(chaincodeStub.getParameters()).thenReturn(Arrays.asList("onlyOneStringAsParameter"));
 
         Response response = overbookingChainCode.init(chaincodeStub);
-        assertEquals(response.getMessage(), "Incorrect number of arguments. Expecting 0 by default (or 2 for specifying a booking range)");
+        assertThat(response.getMessage(),
+                StringStartsWith.startsWith("Incorrect number of arguments. Expecting 0 by default (or 2 for specifying a booking range)"));
     }
 
     @Test
@@ -62,7 +65,8 @@ public class OverbookingChainCodeTest {
                 "as","parameter"));
 
         Response response = overbookingChainCode.init(chaincodeStub);
-        assertEquals(response.getMessage(), "Incorrect number of arguments. Expecting 0 by default (or 2 for specifying a booking range)");
+        assertThat(response.getMessage(),
+                StringStartsWith.startsWith("Incorrect number of arguments. Expecting 0 by default (or 2 for specifying a booking range)"));
     }
 
     @Test
