@@ -1,17 +1,15 @@
-package org.tudelft.blockchain.booking.otawebapp.repository;
+package org.tudelft.blockchain.booking.otawebapp.repository.hyperledger;
 
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.ChaincodeEndorsementPolicyParseException;
-import org.hyperledger.fabric.sdk.exception.CryptoException;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
-import org.hyperledger.fabric.sdk.security.CryptoSuite;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.tudelft.blockchain.booking.otawebapp.util.Util;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,71 +21,73 @@ import java.util.logging.Logger;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Component
-public class FabricRepository {
+public class FabricRepository extends BaseBlockchainRepository {
 
-    private HFClient hfClient;
+    @Value("${org.tudelft.blockchain.booking.admin.private.key.path}")
+    String adminPrivateKeyPath;
 
-    public HFClient getHfClient() {
-        return hfClient;
-    }
+    @Value("${org.tudelft.blockchain.booking.admin.certificate.path}")
+    String adminCertificatePath;
 
-//    @PostConstruct
-    public void setupClient(User userContext) throws CryptoException, InvalidArgumentException, IllegalAccessException,
-            InstantiationException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException {
-        CryptoSuite cryptoSuite = CryptoSuite.Factory.getCryptoSuite();
-        // setup the client
-        hfClient = HFClient.createNewInstance();
-        hfClient.setCryptoSuite(cryptoSuite);
-        hfClient.setUserContext(userContext);
+    @Override
+    public Enrollment getEnrollment() throws Exception {
+        File pkFolder = new File(adminPrivateKeyPath);
+        File[] pkFiles = pkFolder.listFiles();
+
+        File certFolder = new File(adminCertificatePath);
+        File[] certFiles = certFolder.listFiles();
+
+        return Util.getEnrollment(pkFolder.getPath(), pkFiles[0].getName(), certFolder.getPath(), certFiles[0].getName());
     }
 
     public Collection<ProposalResponse> deployChainCode(String chainCodeName, String codepath, String version, Collection<Peer> peers)
-            throws InvalidArgumentException, IOException, ProposalException {
-        InstallProposalRequest request = hfClient.newInstallProposalRequest();
+            throws InvalidArgumentException, ProposalException {
+
+
         ChaincodeID.Builder chaincodeIDBuilder = ChaincodeID.newBuilder().setName(chainCodeName).setVersion(version);
         ChaincodeID chaincodeID = chaincodeIDBuilder.build();
 
         Logger.getLogger(FabricRepository.class.getName()).log(Level.INFO,
-                "Deploying chaincode " + chainCodeName + " using Fabric client " + hfClient.getUserContext().getMspId()
-                        + " " + hfClient.getUserContext().getName());
+                "Deploying chaincode " + chainCodeName + " using Fabric client " + client.getUserContext().getMspId()
+                        + " " + client.getUserContext().getName());
+
+        // Build Install Proposal Request
+        InstallProposalRequest request = client.newInstallProposalRequest();
 
         request.setChaincodeLanguage(TransactionRequest.Type.JAVA);
         request.setChaincodeID(chaincodeID);
-
-        request.setUserContext(hfClient.getUserContext());
-//        request.setChaincodeInputStream(new FileInputStream(codepath + File.separator + "src" + File.separator + "Overbooking.java"));
+        request.setUserContext(client.getUserContext());
         request.setChaincodeSourceLocation(new File(codepath));
-        request.setChaincodeMetaInfLocation(new File(codepath + File.separator +  "manifests"));
-//        request.setChaincodeInputStream(Util.generateTarGzInputStream(new File(codepath), "src"));
+        request.setChaincodeMetaInfLocation(new File(codepath + File.separator + "manifests"));
         request.setChaincodeVersion(version);
-        return hfClient.sendInstallProposal(request, peers);
+
+        return client.sendInstallProposal(request, peers);
     }
 
 
-
-
-
-
     public Collection<ProposalResponse> instantiateChainCode(Channel channel, String chaincodeName, String version, String chaincodePath,
-                                                             String language, String functionName, String[] functionArgs, String policyPath)
+                                                             String functionName, String[] functionArgs, String policyPath)
             throws InvalidArgumentException, ProposalException, ChaincodeEndorsementPolicyParseException, IOException, ExecutionException, InterruptedException {
-        Logger.getLogger(ChannelClient.class.getName()).log(Level.INFO,
-                "Instantiate proposal request " + chaincodeName + " on channel " + channel.getName()
-                        + " with Fabric client " + hfClient.getUserContext().getMspId() + " "
-                        + hfClient.getUserContext().getName());
 
-        InstantiateProposalRequest instantiateProposalRequest = hfClient.newInstantiationProposalRequest();
-        instantiateProposalRequest.setProposalWaitTime(180000);
+        Logger.getLogger(FabricRepository.class.getName()).log(Level.INFO,
+                "Instantiate proposal request " + chaincodeName + " on channel " + channel.getName()
+                        + " with Fabric client " + client.getUserContext().getMspId() + " "
+                        + client.getUserContext().getName());
+
+
         ChaincodeID.Builder chaincodeIDBuilder = ChaincodeID.newBuilder().setName(chaincodeName).setVersion(version).setPath(chaincodePath);
         ChaincodeID ccid = chaincodeIDBuilder.build();
-        Logger.getLogger(ChannelClient.class.getName()).log(Level.INFO,
+        Logger.getLogger(FabricRepository.class.getName()).log(Level.INFO,
                 "Instantiating Chaincode ID " + chaincodeName + " on channel " + channel.getName());
+
+        // Send instantiation proposal request
+        InstantiateProposalRequest instantiateProposalRequest = client.newInstantiationProposalRequest();
+        instantiateProposalRequest.setProposalWaitTime(180000);
         instantiateProposalRequest.setChaincodeID(ccid);
-
         instantiateProposalRequest.setChaincodeLanguage(TransactionRequest.Type.JAVA);
-
         instantiateProposalRequest.setFcn(functionName);
         instantiateProposalRequest.setArgs(functionArgs);
+
         Map<String, byte[]> tm = new HashMap<>();
         tm.put("HyperLedgerFabric", "InstantiateProposalRequest:JavaSDK".getBytes(UTF_8));
         tm.put("method", "InstantiateProposalRequest".getBytes(UTF_8));
@@ -103,7 +103,7 @@ public class FabricRepository {
         CompletableFuture<BlockEvent.TransactionEvent> cf = channel.sendTransaction(responses);
         cf.get();
 
-        Logger.getLogger(ChannelClient.class.getName()).log(Level.INFO,
+        Logger.getLogger(FabricRepository.class.getName()).log(Level.INFO,
                 "Chaincode " + chaincodeName + " on channel " + channel.getName() + " instantiation " + cf);
         return responses;
     }

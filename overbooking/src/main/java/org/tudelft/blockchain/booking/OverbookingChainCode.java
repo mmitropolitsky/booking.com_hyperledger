@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 
 public class OverbookingChainCode extends ChaincodeBase {
@@ -103,6 +104,15 @@ public class OverbookingChainCode extends ChaincodeBase {
 
             //Update the booking status for each date of the booking
             addDatesWithAvailability(stub, params, DateStatus.AVAILABLE.toString());
+            Map<String, byte[]> transientMap = stub.getTransient();
+            if (null != transientMap) {
+                if (transientMap.containsKey("event") && transientMap.get("event") != null) {
+                    stub.setEvent("event", transientMap.get("event"));
+                }
+                if (transientMap.containsKey("result") && transientMap.get("result") != null) {
+                    return newSuccessResponse(transientMap.get("result"));
+                }
+            }
             return newSuccessResponse("The time between the following dates was booked successfully: " + params.get(0) + " and " + params.get(1));
         } else {
             return notBookableResponse();
