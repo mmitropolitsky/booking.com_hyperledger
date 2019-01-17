@@ -31,11 +31,7 @@ public class OverbookingChainCodeTest {
         this.overbookingChainCode = new OverbookingChainCode();
     }
 
-
     /* Tests for the init method of the chaincode
-     *
-     *
-     *
      *
      * */
     @Test
@@ -101,7 +97,7 @@ public class OverbookingChainCodeTest {
 
         String startDate = "2019-07-03";
         String endDate = "2019-07-04";
-        String available = "0";
+        String available = DateStatus.AVAILABLE.toString();
 
         when(chaincodeStub.getFunction()).thenReturn("init");
         when(chaincodeStub.getParameters()).thenReturn(Arrays.asList(startDate, endDate));
@@ -125,7 +121,7 @@ public class OverbookingChainCodeTest {
 
         String startDate = LocalDate.now().toString();
         String endDate = LocalDate.now().plusDays(31).toString();
-        String availability = "0";
+        String availability = DateStatus.AVAILABLE.toString();
 
         when(chaincodeStub.getFunction()).thenReturn("init");
         when(chaincodeStub.getParameters()).thenReturn(Arrays.asList(startDate, endDate));
@@ -149,7 +145,7 @@ public class OverbookingChainCodeTest {
 
         String startDate = LocalDate.now().toString();
         String endDate = LocalDate.now().plusDays(500).toString();
-        String availability = "0";
+        String availability = DateStatus.AVAILABLE.toString();
 
         when(chaincodeStub.getFunction()).thenReturn("init");
         when(chaincodeStub.getParameters()).thenReturn(Arrays.asList(startDate, endDate));
@@ -229,7 +225,7 @@ public class OverbookingChainCodeTest {
 
         KeyValue mockedDate = mock(KeyValue.class);
         when(mockedDate.getKey()).thenReturn(startDate.toString());
-        when(mockedDate.getStringValue()).thenReturn("1");
+        when(mockedDate.getStringValue()).thenReturn(DateStatus.BOOKED.toString());
 
         Response response = overbookingChainCode.invoke(chaincodeStub);
         assertEquals(response.getMessage(), "Please specify an end date after the start date!");
@@ -242,7 +238,7 @@ public class OverbookingChainCodeTest {
 
         // Mocking these date parameters with a booked status
         List<KeyValue> dates = generateMockKeyValueDateWithAvailabilityByInterval(
-                LocalDate.parse(datesParam.get(0)), LocalDate.parse(datesParam.get(1)),"1");
+                LocalDate.parse(datesParam.get(0)), LocalDate.parse(datesParam.get(1)),DateStatus.BOOKED.toString());
 
         when(chaincodeStub.getFunction()).thenReturn("isBookable");
         when(chaincodeStub.getParameters()).thenReturn(datesParam);
