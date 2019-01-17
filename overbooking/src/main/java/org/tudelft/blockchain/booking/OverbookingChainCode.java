@@ -103,7 +103,7 @@ public class OverbookingChainCode extends ChaincodeBase {
         if (isBookable(stub, params)) {
 
             //Update the booking status for each date of the booking
-            addDatesWithAvailability(stub, params, DateStatus.AVAILABLE.toString());
+            addDatesWithAvailability(stub, params, DateStatus.BOOKED.toString());
             Map<String, byte[]> transientMap = stub.getTransient();
             if (null != transientMap) {
                 if (transientMap.containsKey("event") && transientMap.get("event") != null) {
