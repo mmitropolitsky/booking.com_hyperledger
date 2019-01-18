@@ -35,7 +35,7 @@ public class ChainCodeService {
         String[] args = new String[0];
         Collection<ProposalResponse> instantiationProposalResponses =
                 fabricRepository.instantiateChainCode(fabricRepository.getChannel(), "OverbookingChainCode", "1",
-                        "overbooking", "init", args, null);
+                        "overbooking", "init", args, "./out/production/resources/policy.yml");
 
         for (ProposalResponse res : instantiationProposalResponses) {
             Logger.getLogger(ChainCodeService.class.getName()).log(Level.INFO,

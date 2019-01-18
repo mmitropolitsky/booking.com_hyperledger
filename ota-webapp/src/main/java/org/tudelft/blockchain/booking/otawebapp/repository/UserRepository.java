@@ -1,4 +1,4 @@
-package org.tudelft.blockchain.booking.otawebapp.repository.hyperledger;
+package org.tudelft.blockchain.booking.otawebapp.repository;
 
 import org.hyperledger.fabric.sdk.User;
 import org.hyperledger.fabric.sdk.user.IdemixUser;
@@ -15,13 +15,14 @@ public class UserRepository {
     private Map<String, IdemixUser> idemixUsers;
 
     @PostConstruct
-    public void setUp() throws Exception {
+    public void setUp() {
         users = new IdentityHashMap<>();
         idemixUsers = new IdentityHashMap<>();
     }
 
     /**
      * Get an existing user
+     *
      * @param username
      * @return the corresponding User object or null if not enrolled
      */
@@ -31,6 +32,7 @@ public class UserRepository {
 
     /**
      * Get an existing Idemix user
+     *
      * @param username
      * @return the corresponding IdemixUser object or null if not enrolled
      */
