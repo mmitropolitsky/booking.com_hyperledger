@@ -3,6 +3,7 @@ package org.tudelft.blockchain.booking.otawebapp.service;
 import org.hyperledger.fabric.sdk.Enrollment;
 import org.hyperledger.fabric.sdk.User;
 import org.hyperledger.fabric.sdk.identity.IdemixEnrollment;
+import org.hyperledger.fabric.sdk.identity.X509Enrollment;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import org.hyperledger.fabric.sdk.user.IdemixUser;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
@@ -10,11 +11,12 @@ import org.hyperledger.fabric_ca.sdk.RegistrationRequest;
 import org.hyperledger.fabric_ca.sdk.exception.EnrollmentException;
 import org.hyperledger.fabric_ca.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric_ca.sdk.exception.RegistrationException;
+import org.hyperledger.fabric_ca.sdk.exception.RevocationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.CAEnrollment;
 import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.HFUser;
+import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.RolesSet;
 import org.tudelft.blockchain.booking.otawebapp.repository.UserRepository;
 import org.tudelft.blockchain.booking.otawebapp.util.Util;
 
@@ -23,7 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Properties;
+import java.util.*;
 
 @Component
 public class CredentialService {
@@ -31,19 +33,19 @@ public class CredentialService {
     @Autowired
     UserRepository userRepository;
 
-    @Value("${ADMIN_USERNAME}")
+    @Value("${org.tudelft.blockchain.booking.admin.username}")
     protected String adminUsername;
 
-    @Value("${ADMIN_PASSWORD}")
+    @Value("${org.tudelft.blockchain.booking.admin.password}")
     protected String adminPassword;
 
-    @Value("${CA_URL}")
+    @Value("${org.tudelft.blockchain.booking.ca.url}")
     protected String caURL;
 
-    @Value("${ORG_NAME}")
+    @Value("${org.tudelft.blockchain.booking.ca.orgname}")
     protected String orgName;
 
-    @Value("${MSP_ID}")
+    @Value("${org.tudelft.blockchain.booking.ca.mspid}")
     protected String mspID;
 
     @Value("${org.tudelft.blockchain.booking.admin.private.key.path}")
@@ -83,21 +85,34 @@ public class CredentialService {
         hfcaClient.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
     }
 
-    private void setupOrgAdmin() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+    private void setupOrgAdmin() {
         File pkFolder = new File(adminPrivateKeyPath);
         File[] pkFiles = pkFolder.listFiles();
 
         File certFolder = new File(adminCertificatePath);
         File[] certFiles = certFolder.listFiles();
 
-        CAEnrollment enrollment = Util.getEnrollment(pkFolder.getPath(), pkFiles[0].getName(), certFolder.getPath(), certFiles[0].getName());
+//        CAEnrollment enrollment = Util.getEnrollment(pkFolder.getPath(), pkFiles[0].getName(), certFolder.getPath(), certFiles[0].getName());
+        try {
+            Enrollment enrollment = new X509Enrollment(
+                    Util.parsePrivateKey(pkFolder.getPath(), pkFiles[0].getName()),
+                    Util.parseCertificate(certFolder.getPath(), certFiles[0].getName()));
 
-        orgAdmin = new HFUser(adminUsername, orgName, mspID, enrollment);
+            orgAdmin = new HFUser(adminUsername, orgName, mspID, enrollment);
+            Set<String> roles = new RolesSet();
+            roles.add("admin");
+            orgAdmin.setRoles(roles);
+        } catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
     }
 
     private void setupCaAdmin() throws EnrollmentException, InvalidArgumentException {
         Enrollment adminEnrollment = hfcaClient.enroll(adminUsername, adminPassword);
         caAdmin = new HFUser(adminUsername, orgName, mspID, adminEnrollment);
+        Set<String> roles = new RolesSet();
+        roles.add("admin");
+        caAdmin.setRoles(roles);
     }
 
     /**
@@ -111,6 +126,7 @@ public class CredentialService {
             throws RegistrationException, InvalidArgumentException {
         try {
             RegistrationRequest registrationRequest = new RegistrationRequest(username, orgName);
+//            registrationRequest.setType(HFCAClient.HFCA_TYPE_CLIENT);
             String secret = hfcaClient.register(registrationRequest, caAdmin);
             return secret;
         } catch (RegistrationException | InvalidArgumentException e) {
@@ -133,8 +149,13 @@ public class CredentialService {
             throws EnrollmentException, InvalidArgumentException {
         Enrollment enrollment = hfcaClient.enroll(username, userSecret);
         HFUser user = new HFUser(username, orgName, mspID, enrollment);
-        userRepository.putUser(user);
 
+        Set<String> roles = new RolesSet();
+        roles.add("member");
+        user.setRoles(roles);
+
+
+        userRepository.putUser(user);
         return user;
     }
 
@@ -175,6 +196,14 @@ public class CredentialService {
 
     public IdemixUser getIdemixEnrolledUser(String username, String password) throws Exception {
         return this.getIdemixEnrolledUser(this.getEnrolledUser(username, password));
+    }
+
+    public void revoke(String username, String reason) throws InvalidArgumentException, RevocationException {
+        hfcaClient.revoke(caAdmin, username, reason);
+    }
+
+    public void revoke(Enrollment enrollment, String reason) throws InvalidArgumentException, RevocationException {
+        hfcaClient.revoke(caAdmin, enrollment, reason);
     }
 
 //    /**

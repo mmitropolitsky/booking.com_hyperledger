@@ -3,12 +3,10 @@ package org.tudelft.blockchain.booking.otawebapp.repository.hyperledger;
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
-import org.hyperledger.fabric.sdk.user.IdemixUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.tudelft.blockchain.booking.otawebapp.service.CredentialService;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -23,13 +21,13 @@ public class BaseBlockchainRepository {
     protected String adminPassword;
 
     @Autowired
-    private CredentialService credentialService;
+    protected CredentialService credentialService;
 
     protected HFClient client;
 
     protected Channel channel;
 
-    protected IdemixUser user;
+    protected User user;
 
     private CryptoSuite cryptoSuite;
 
@@ -41,18 +39,46 @@ public class BaseBlockchainRepository {
         return channel;
     }
 
-    @PostConstruct
-    protected void setup() {
+//    @PostConstruct
+//    protected void setup() {
+//        try {
+//            User admin = credentialService.getCaAdminUser();
+//
+//            cryptoSuite = CryptoSuite.Factory.getCryptoSuite();
+//
+//            // GET HF CLIENT
+//            client = HFClient.createNewInstance();
+//            client.setCryptoSuite(cryptoSuite);
+//            client.setUserContext(admin);
+//
+//            // CREATE CHANNEL
+//            Peer peer = client.newPeer("peer0.org1.example.com", "grpc://localhost:7051");
+//            EventHub eventHub = client.newEventHub("eventhub01", "grpc://localhost:7053");
+//            Orderer orderer = client.newOrderer("orderer.example.com", "grpc://localhost:7050");
+//            channel = client.newChannel("mychannel");
+//            channel.addPeer(peer);
+//            channel.addEventHub(eventHub);
+//            channel.addOrderer(orderer);
+//            channel.initialize();
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
+
+    protected void setUpHfClient(User user) {
         try {
-            User admin = credentialService.getCaAdminUser();
-
-            cryptoSuite = CryptoSuite.Factory.getCryptoSuite();
-
-            // GET HF CLIENT
             client = HFClient.createNewInstance();
-            client.setCryptoSuite(cryptoSuite);
-            client.setUserContext(admin);
+            client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
+            client.setUserContext(user);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
+    protected void setUpChannel() {
+        try {
             // CREATE CHANNEL
             Peer peer = client.newPeer("peer0.org1.example.com", "grpc://localhost:7051");
             EventHub eventHub = client.newEventHub("eventhub01", "grpc://localhost:7053");
@@ -62,15 +88,14 @@ public class BaseBlockchainRepository {
             channel.addEventHub(eventHub);
             channel.addOrderer(orderer);
             channel.initialize();
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     public void changeToUserContext() throws InvalidArgumentException {
-        client.setUserContext(user);
+        if (user != null)
+            client.setUserContext(user);
     }
 
     public void changeToCaAdminContext() throws InvalidArgumentException {

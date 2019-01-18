@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.tudelft.blockchain.booking.otawebapp.service.CredentialService;
 
+import javax.annotation.PostConstruct;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,14 +22,17 @@ public class BookingRepository extends BaseBlockchainRepository {
     CredentialService credentialService;
 
 
-    @Override
+    @PostConstruct
     protected void setup() {
         try {
+//            super.setup();
             String username = "test1";
-            super.setup();
             String userSecret = credentialService.registerUser(username);
-            user = credentialService.getIdemixEnrolledUser(username, userSecret);
-            client.setUserContext(user);
+//            user = credentialService.getIdemixEnrolledUser(username, userSecret);
+            user = credentialService.getEnrolledUser(username, userSecret);
+//            client.setUserContext(user);
+            setUpHfClient(user);
+            setUpChannel();
         } catch (Exception e) {
             e.printStackTrace();
         }
