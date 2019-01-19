@@ -4,7 +4,6 @@ import org.hyperledger.fabric.sdk.ChannelConfiguration;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,17 +13,17 @@ import java.io.InputStreamReader;
 @Component
 public class ChannelConfigurationService {
 
-    @Value("org.tudelft.blockchain.booking.channel.configuration.path")
-    private String channelConfigurationPath;
+    @Value("${org.tudelft.blockchain.booking.channel.configuration.path}")
+    String configPath;
 
     public ChannelConfiguration createChannelConfiguration(String channelName) throws Exception {
         try {
-            String path = channelConfigurationPath + channelName + ".tx";
-            String command = "configtxgen -profile OneOrgChannel -outputCreateChannelTx /home/viktoriya/Projects/fabric-samples/basic-network/config/" + channelName + ".tx -channelID " + channelName;
+            String channelConfigurationPath = configPath + channelName + ".tx";
+            String command = "configtxgen -profile OneOrgChannel -outputCreateChannelTx " + channelConfigurationPath + " -channelID " + channelName;
             System.out.println(command);
-            String response = executeCommand(command);
+            executeCommand(command);
 
-            return new ChannelConfiguration(new File(path));
+            return new ChannelConfiguration(new File(channelConfigurationPath));
         } catch (IOException | InvalidArgumentException e) {
             e.printStackTrace();
             throw e;
@@ -37,7 +36,7 @@ public class ChannelConfigurationService {
         try {
             Process process = rt.exec(command);
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line = "";
+            String line;
             while ((line = bufferedReader.readLine()) != null) {
                 response += line;
             }

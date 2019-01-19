@@ -54,18 +54,14 @@ public class FabricRepository extends BaseBlockchainRepository {
             Peer peer = client.newPeer(peerName, peerUrl);
             EventHub eventHub = client.newEventHub(eventHubName, eventHubUrl);
             Orderer orderer = client.newOrderer(ordererName, ordererUrl);
-
             ChannelConfiguration channelConfiguration = channelConfigurationService.createChannelConfiguration(channelName);
             Channel newChannel = client.newChannel(channelName, orderer, channelConfiguration, client.getChannelConfigurationSignature(channelConfiguration, admin));
+            newChannel.addEventHub(eventHub);
+            newChannel.addOrderer(orderer);
             newChannel.joinPeer(peer, createPeerOptions().setPeerRoles(EnumSet.of(Peer.PeerRole.ENDORSING_PEER, Peer.PeerRole.LEDGER_QUERY, Peer.PeerRole.CHAINCODE_QUERY, Peer.PeerRole.EVENT_SOURCE))); //Default is all roles.
             newChannel.initialize();
 
-//            channel = client.newChannel(channelName);
-//            channel.addPeer(peer);
-//            channel.addEventHub(eventHub);
-//            channel.addOrderer(orderer);
-//            channel.initialize();
-            return channel;
+            return newChannel;
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
