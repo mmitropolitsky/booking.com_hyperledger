@@ -42,8 +42,17 @@ public class BaseBlockchainRepository {
         return channel;
     }
 
+    private boolean isInitialized = false;
+
     @PostConstruct
-    protected void setup() {
+    private void init() {
+        if (!isInitialized) {
+            this.setup();
+        }
+        isInitialized = true;
+    }
+
+    private void setup() {
         try {
             User admin = credentialService.getCaAdminUser();
 

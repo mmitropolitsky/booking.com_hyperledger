@@ -15,7 +15,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 
 @Component
 public class Util {
-    
+
     public static CAEnrollment getEnrollment(String keyFolderPath, String keyFileName, String certFolderPath, String certFileName)
             throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         PrivateKey key = null;
