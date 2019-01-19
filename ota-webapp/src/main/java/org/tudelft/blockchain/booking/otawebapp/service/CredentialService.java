@@ -3,7 +3,6 @@ package org.tudelft.blockchain.booking.otawebapp.service;
 import org.hyperledger.fabric.sdk.Enrollment;
 import org.hyperledger.fabric.sdk.User;
 import org.hyperledger.fabric.sdk.identity.IdemixEnrollment;
-import org.hyperledger.fabric.sdk.identity.X509Enrollment;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import org.hyperledger.fabric.sdk.user.IdemixUser;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
@@ -15,6 +14,7 @@ import org.hyperledger.fabric_ca.sdk.exception.RevocationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.CAEnrollment;
 import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.HFUser;
 import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.RolesSet;
 import org.tudelft.blockchain.booking.otawebapp.repository.UserRepository;
@@ -25,7 +25,8 @@ import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.*;
+import java.util.Properties;
+import java.util.Set;
 
 @Component
 public class CredentialService {

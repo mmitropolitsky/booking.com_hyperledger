@@ -56,28 +56,6 @@ public class CredentialServiceTest {
         assertTrue(caAdmin.getRoles().contains("admin"));
     }
 
-    @Test
-    public void testSetupOrgAdmin() throws Exception {
-        User orgAdmin = credentialService.getOrgAdminUser();
-
-        assertEquals("admin", orgAdmin.getName());
-        assertEquals(orgName, orgAdmin.getAffiliation());
-        assertEquals(mspID, orgAdmin.getMspId());
-        assertTrue(orgAdmin.getRoles().contains("admin"));
-
-        Enrollment enrollment = orgAdmin.getEnrollment();
-
-        File pkFolder = new File(adminPrivateKeyPath),
-                certFolder = new File(adminCertificatePath);
-        File[] pkFiles = pkFolder.listFiles(),
-                certFiles = certFolder.listFiles();
-
-        PrivateKey pk = Util.parsePrivateKey(pkFolder.getPath(), pkFiles[0].getName());
-        String certificate = Util.parseCertificate(certFolder.getPath(), certFiles[0].getName());
-
-        assertEquals(certificate, enrollment.getCert());
-        assertEquals(pk, enrollment.getKey());
-    }
 
     @Test
     public void testRegisterNewUser() throws Exception {
@@ -131,7 +109,7 @@ public class CredentialServiceTest {
     public void idemixEnroll() throws Exception {
         String username = "user6";
         String secret = credentialService.registerUser(username);
-        IdemixUser idemixUser = credentialService.getIdemixEnrolledUser(username, secret);
+        User idemixUser = credentialService.getIdemixEnrolledUser(username, secret);
         User user = credentialService.getUser(username);
 
 //        assertNotEquals(user.getName(), idemixUser.getName());

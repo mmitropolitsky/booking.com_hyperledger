@@ -2,14 +2,10 @@ package org.tudelft.blockchain.booking.otawebapp.repository.hyperledger;
 
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
-import org.hyperledger.fabric.sdk.identity.IdemixEnrollment;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import org.hyperledger.fabric.sdk.user.IdemixUser;
-import org.hyperledger.fabric_ca.sdk.HFCAClient;
-import org.hyperledger.fabric_ca.sdk.RegistrationRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.HFUser;
 import org.tudelft.blockchain.booking.otawebapp.service.CredentialService;
 
 import javax.annotation.PostConstruct;
@@ -45,9 +41,6 @@ public class BaseBlockchainRepository {
     public Channel getChannel() {
         return channel;
     }
-
-    @Value("${CA_URL}")
-    protected String caURL;
 
     @PostConstruct
     protected void setup() {

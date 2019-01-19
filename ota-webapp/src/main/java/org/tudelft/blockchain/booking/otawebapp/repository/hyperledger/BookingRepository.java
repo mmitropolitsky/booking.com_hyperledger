@@ -3,9 +3,7 @@ package org.tudelft.blockchain.booking.otawebapp.repository.hyperledger;
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.tudelft.blockchain.booking.otawebapp.service.CredentialService;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,10 +14,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Component
 public class BookingRepository extends BaseBlockchainRepository {
-
-    @Autowired
-    CredentialService credentialService;
-
 
     /**
      * Check if date range is bookable.
