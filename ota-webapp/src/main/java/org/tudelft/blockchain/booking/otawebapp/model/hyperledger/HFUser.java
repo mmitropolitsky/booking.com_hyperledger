@@ -24,7 +24,7 @@ public class HFUser implements User {
         this.affiliation = affiliation;
         this.mspId = mspId;
         this.enrollment = enrollment;
-
+        this.roles = new RolesSet();
     }
 
     @Override
@@ -56,4 +56,9 @@ public class HFUser implements User {
     public String getMspId() {
         return mspId;
     }
+
+    public void setRoles(Set<String> roles) {
+        this.roles.addAll(roles);
+    }
+
 }

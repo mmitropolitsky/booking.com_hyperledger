@@ -1,16 +1,12 @@
 package org.tudelft.blockchain.booking.otawebapp.service;
 
-import org.hyperledger.fabric.sdk.*;
+import org.hyperledger.fabric.sdk.ProposalResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.HFUser;
 import org.tudelft.blockchain.booking.otawebapp.repository.hyperledger.FabricRepository;
 
-import java.io.File;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
