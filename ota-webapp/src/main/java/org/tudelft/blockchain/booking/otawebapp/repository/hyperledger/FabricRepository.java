@@ -81,20 +81,30 @@ public class FabricRepository {
         tm.put("method", "InstantiateProposalRequest".getBytes(UTF_8));
         instantiateProposalRequest.setTransientMap(tm);
 
-        ChaincodeEndorsementPolicy chaincodeEndorsementPolicy = new ChaincodeEndorsementPolicy();
-        if (policyPath != null) {
-            chaincodeEndorsementPolicy.fromFile(new File(policyPath));
-            instantiateProposalRequest.setChaincodeEndorsementPolicy(chaincodeEndorsementPolicy);
-        }
+//        ChaincodeEndorsementPolicy chaincodeEndorsementPolicy = new ChaincodeEndorsementPolicy();
+//        if (policyPath != null) {
+//            chaincodeEndorsementPolicy.fromFile(new File(policyPath));
+//            instantiateProposalRequest.setChaincodeEndorsementPolicy(chaincodeEndorsementPolicy);
+//        }
 
         Collection<ProposalResponse> responses = channel.sendInstantiationProposal(instantiateProposalRequest);
         CompletableFuture<BlockEvent.TransactionEvent> cf = channel.sendTransaction(responses);
+        networkService.changeToUserContext();
+
         cf.get();
 
         Logger.getLogger(FabricRepository.class.getName()).log(Level.INFO,
                 "Chaincode " + chaincodeName + " on channel " + channel.getName() + " instantiation " + cf);
-        networkService.changeToUserContext();
+
         return responses;
+    }
+
+    public Collection<Peer> getPeers() {
+        return networkService.getPeers();
+    }
+
+    public Channel getChannel() {
+        return networkService.getChannel();
     }
 
 }
