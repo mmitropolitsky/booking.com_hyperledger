@@ -3,7 +3,9 @@ package org.tudelft.blockchain.booking.otawebapp.repository.hyperledger;
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.tudelft.blockchain.booking.otawebapp.service.NetworkService;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,7 +15,10 @@ import java.util.concurrent.CompletableFuture;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Component
-public class BookingRepository extends BaseBlockchainRepository {
+public class BookingRepository {
+
+    @Autowired
+    NetworkService networkService;
 
     /**
      * Check if date range is bookable.
@@ -24,13 +29,13 @@ public class BookingRepository extends BaseBlockchainRepository {
      * @throws ProposalException
      * @throws InvalidArgumentException
      */
-    public boolean isBookable(String fromDate, String toDate) throws ProposalException, InvalidArgumentException {
+    public boolean isBookable(String fromDate, String toDate) throws Exception {
         // QUERY THE BLOCKCHAIN
 
-        changeToUserContext();
+//        baseBlockchainRepository.changeToUserContext();
         QueryByChaincodeRequest qpr = getQueryByChaincodeRequest(fromDate, toDate, "isBookable");
 
-        Collection<ProposalResponse> res = channel.queryByChaincode(qpr);
+        Collection<ProposalResponse> res = networkService.getChannel().queryByChaincode(qpr);
         // display response
         for (ProposalResponse pres : res) {
             String stringResponse = new String(pres.getChaincodeActionResponsePayload());
@@ -52,8 +57,9 @@ public class BookingRepository extends BaseBlockchainRepository {
      * @throws ProposalException
      * @throws InvalidArgumentException
      */
-    public boolean book(String fromDate, String toDate) throws ProposalException, InvalidArgumentException {
-        changeToUserContext();
+    public boolean book(String fromDate, String toDate) throws Exception {
+//        changeToUserContext();
+        Channel channel = networkService.getChannel();
         TransactionProposalRequest request = getBookTransactionProposalRequest(fromDate, toDate);
 
         Collection<ProposalResponse> responses = channel.sendTransactionProposal(request, channel.getPeers());
@@ -74,7 +80,7 @@ public class BookingRepository extends BaseBlockchainRepository {
 
     // TODO clean this up
     private TransactionProposalRequest getBookTransactionProposalRequest(String fromDate, String toDate) throws InvalidArgumentException {
-        TransactionProposalRequest request = client.newTransactionProposalRequest();
+        TransactionProposalRequest request = networkService.getClient().newTransactionProposalRequest();
         ChaincodeID ccid = ChaincodeID.newBuilder().setName("OverbookingChainCode").build();
         request.setChaincodeID(ccid);
         request.setFcn("book");
@@ -95,7 +101,7 @@ public class BookingRepository extends BaseBlockchainRepository {
     }
 
     private QueryByChaincodeRequest getQueryByChaincodeRequest(String fromDate, String toDate, String method) {
-        QueryByChaincodeRequest qpr = client.newQueryProposalRequest();
+        QueryByChaincodeRequest qpr = networkService.getClient().newQueryProposalRequest();
         ChaincodeID overbookingCCID = ChaincodeID.newBuilder().setName("OverbookingChainCode").build();
         qpr.setChaincodeID(overbookingCCID);
         qpr.setFcn(method);

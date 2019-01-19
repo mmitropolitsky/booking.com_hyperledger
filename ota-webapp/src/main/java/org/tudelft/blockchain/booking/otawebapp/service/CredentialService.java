@@ -18,13 +18,17 @@ import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.CAEnrollment;
 import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.HFUser;
 import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.RolesSet;
 import org.tudelft.blockchain.booking.otawebapp.repository.UserRepository;
-import org.tudelft.blockchain.booking.otawebapp.util.Util;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.IOException;
+import javax.xml.bind.DatatypeConverter;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Properties;
 import java.util.Set;
 
@@ -93,7 +97,7 @@ public class CredentialService {
         File certFolder = new File(adminCertificatePath);
         File[] certFiles = certFolder.listFiles();
 
-        CAEnrollment enrollment = Util.getEnrollment(pkFolder.getPath(), pkFiles[0].getName(), certFolder.getPath(), certFiles[0].getName());
+        CAEnrollment enrollment = getEnrollment(pkFolder.getPath(), pkFiles[0].getName(), certFolder.getPath(), certFiles[0].getName());
 
         orgAdmin = new HFUser(adminUsername, orgName, mspID, enrollment);
         Set<String> roles = new RolesSet();
@@ -200,42 +204,38 @@ public class CredentialService {
         hfcaClient.revoke(caAdmin, enrollment, reason);
     }
 
-//    /**
-//     * Create an Idemix Pseudonym for an existing IdemixEnrollment Credential
-//     * @param idemixEnrollment
-//     * @return
-//     */
-//    public IdemixPseudonym idemixPseudonym(IdemixEnrollment idemixEnrollment) {
-//
-//        return new IdemixPseudonym(BIG.fromBytes(idemixEnrollment.getKey().getEncoded()),
-//                idemixEnrollment.getIpk());
-//    }
+    public CAEnrollment getEnrollment(String keyFolderPath, String keyFileName, String certFolderPath, String certFileName)
+            throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        PrivateKey key = null;
+        String certificate = null;
+        InputStream isKey = null;
+        BufferedReader brKey = null;
 
-//    /**
-//     * Sign a given message with a Zero-Knowledge Proof of the signature for an enrolled user's specific Pseudonym
-//     * @param idemixEnrollment: existing IdemixEnrollment for a user
-//     * @param idemixPseudonym: existing IdemixPseudonym to sign as
-//     * @param message: message to sign
-//     * @return
-//     */
-//    public IdemixSignature idemixSignature(IdemixEnrollment idemixEnrollment,
-//                                           IdemixPseudonym idemixPseudonym, byte[] message) {
-//
-//        IdemixCredential cred = idemixEnrollment.getCred();
-//        boolean[] disclosure = new boolean[cred.getAttrs().length];
-//        // disclose all attributes
-//        // TODO figure out which attributes to disclose
-//        for (int i = 0 ; i < disclosure.length; i++)
-//            disclosure[i] = true;
-//
-//        return new IdemixSignature(idemixEnrollment.getCred(),
-//                BIG.fromBytes(idemixEnrollment.getKey().getEncoded()),
-//                idemixPseudonym,
-//                idemixEnrollment.getIpk(),
-//                disclosure,
-//                message,
-//                0,
-//                idemixEnrollment.getCri());
-//    }
+        try {
+
+            isKey = new FileInputStream(keyFolderPath + File.separator + keyFileName);
+            brKey = new BufferedReader(new InputStreamReader(isKey));
+            StringBuilder keyBuilder = new StringBuilder();
+
+            for (String line = brKey.readLine(); line != null; line = brKey.readLine()) {
+                if (line.indexOf("PRIVATE") == -1) {
+                    keyBuilder.append(line);
+                }
+            }
+
+            certificate = new String(Files.readAllBytes(Paths.get(certFolderPath, certFileName)));
+
+            byte[] encoded = DatatypeConverter.parseBase64Binary(keyBuilder.toString());
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
+            KeyFactory kf = KeyFactory.getInstance("EC");
+            key = kf.generatePrivate(keySpec);
+        } finally {
+            isKey.close();
+            brKey.close();
+        }
+
+        CAEnrollment enrollment = new CAEnrollment(key, certificate);
+        return enrollment;
+    }
 
 }

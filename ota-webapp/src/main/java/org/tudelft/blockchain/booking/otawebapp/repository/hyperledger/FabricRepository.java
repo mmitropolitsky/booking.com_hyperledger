@@ -1,7 +1,9 @@
 package org.tudelft.blockchain.booking.otawebapp.repository.hyperledger;
 
 import org.hyperledger.fabric.sdk.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.tudelft.blockchain.booking.otawebapp.service.NetworkService;
 
 import java.io.File;
 import java.util.Collection;
@@ -14,11 +16,15 @@ import java.util.logging.Logger;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Component
-public class FabricRepository extends BaseBlockchainRepository {
+public class FabricRepository {
+
+    @Autowired
+    NetworkService networkService;
 
     public Collection<ProposalResponse> deployChainCode(String chainCodeName, String codepath, String version, Collection<Peer> peers)
             throws Exception {
-        changeToOrgAdminContext();
+        networkService.changeToOrgAdminContext();
+        HFClient client = networkService.getClient();
 
         ChaincodeID.Builder chaincodeIDBuilder = ChaincodeID.newBuilder().setName(chainCodeName).setVersion(version);
         ChaincodeID chaincodeID = chaincodeIDBuilder.build();
@@ -37,7 +43,9 @@ public class FabricRepository extends BaseBlockchainRepository {
         request.setChaincodeMetaInfLocation(new File(codepath + File.separator + "manifests"));
         request.setChaincodeVersion(version);
 
-        return client.sendInstallProposal(request, peers);
+        Collection<ProposalResponse> responses = client.sendInstallProposal(request, peers);
+        networkService.changeToUserContext();
+        return responses;
     }
 
 
@@ -45,7 +53,9 @@ public class FabricRepository extends BaseBlockchainRepository {
                                                              String functionName, String[] functionArgs, String policyPath)
             throws Exception {
 
-        changeToOrgAdminContext();
+        networkService.changeToOrgAdminContext();
+        HFClient client = networkService.getClient();
+
 
         Logger.getLogger(FabricRepository.class.getName()).log(Level.INFO,
                 "Instantiate proposal request " + chaincodeName + " on channel " + channel.getName()
@@ -83,6 +93,7 @@ public class FabricRepository extends BaseBlockchainRepository {
 
         Logger.getLogger(FabricRepository.class.getName()).log(Level.INFO,
                 "Chaincode " + chaincodeName + " on channel " + channel.getName() + " instantiation " + cf);
+        networkService.changeToUserContext();
         return responses;
     }
 
