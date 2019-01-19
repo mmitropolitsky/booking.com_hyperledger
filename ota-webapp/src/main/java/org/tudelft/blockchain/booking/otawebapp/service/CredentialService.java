@@ -111,7 +111,10 @@ public class CredentialService {
             throws RegistrationException, InvalidArgumentException {
         try {
             RegistrationRequest registrationRequest = new RegistrationRequest(username, orgName);
-            String secret = hfcaClient.register(registrationRequest, caAdmin);
+            String secret = "";
+            if (username != "admin") {
+                secret = hfcaClient.register(registrationRequest, caAdmin);
+            }
             return secret;
         } catch (RegistrationException | InvalidArgumentException e) {
             throw e;
@@ -163,7 +166,7 @@ public class CredentialService {
      * @throws EnrollmentException
      * @throws InvalidArgumentException
      */
-    private IdemixUser getIdemixEnrolledUser(User user)
+    public IdemixUser getIdemixEnrolledUser(User user)
             throws EnrollmentException, InvalidArgumentException {
         Enrollment enrollment = hfcaClient.idemixEnroll(user.getEnrollment(), mspID);
         IdemixEnrollment idemixEnrollment = (IdemixEnrollment) enrollment;
@@ -173,7 +176,7 @@ public class CredentialService {
         return idemixUser;
     }
 
-    public IdemixUser getIdemixEnrolledUser(String username, String password) throws Exception {
+    public User getIdemixEnrolledUser(String username, String password) throws Exception {
         return this.getIdemixEnrolledUser(this.getEnrolledUser(username, password));
     }
 

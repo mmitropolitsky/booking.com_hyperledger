@@ -16,23 +16,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Component
 public class FabricRepository extends BaseBlockchainRepository {
 
-//    @Value("${org.tudelft.blockchain.booking.admin.private.key.path}")
-//    String adminPrivateKeyPath;
-//
-//    @Value("${org.tudelft.blockchain.booking.admin.certificate.path}")
-//    String adminCertificatePath;
-//
-//    //    @Override
-//    public Enrollment getEnrollment() throws Exception {
-//        File pkFolder = new File(adminPrivateKeyPath);
-//        File[] pkFiles = pkFolder.listFiles();
-//
-//        File certFolder = new File(adminCertificatePath);
-//        File[] certFiles = certFolder.listFiles();
-//
-//        return Util.getEnrollment(pkFolder.getPath(), pkFiles[0].getName(), certFolder.getPath(), certFiles[0].getName());
-//    }
-
     public Collection<ProposalResponse> deployChainCode(String chainCodeName, String codepath, String version, Collection<Peer> peers)
             throws Exception {
         changeToOrgAdminContext();
@@ -90,7 +73,7 @@ public class FabricRepository extends BaseBlockchainRepository {
 
         ChaincodeEndorsementPolicy chaincodeEndorsementPolicy = new ChaincodeEndorsementPolicy();
         if (policyPath != null) {
-            chaincodeEndorsementPolicy.fromYamlFile(new File(policyPath));
+            chaincodeEndorsementPolicy.fromFile(new File(policyPath));
             instantiateProposalRequest.setChaincodeEndorsementPolicy(chaincodeEndorsementPolicy);
         }
 

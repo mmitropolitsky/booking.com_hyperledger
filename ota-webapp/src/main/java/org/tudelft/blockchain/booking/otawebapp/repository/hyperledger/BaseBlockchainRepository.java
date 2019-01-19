@@ -2,10 +2,14 @@ package org.tudelft.blockchain.booking.otawebapp.repository.hyperledger;
 
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
+import org.hyperledger.fabric.sdk.identity.IdemixEnrollment;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import org.hyperledger.fabric.sdk.user.IdemixUser;
+import org.hyperledger.fabric_ca.sdk.HFCAClient;
+import org.hyperledger.fabric_ca.sdk.RegistrationRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.HFUser;
 import org.tudelft.blockchain.booking.otawebapp.service.CredentialService;
 
 import javax.annotation.PostConstruct;
@@ -13,6 +17,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collection;
+import java.util.UUID;
 
 public class BaseBlockchainRepository {
 
@@ -41,6 +46,9 @@ public class BaseBlockchainRepository {
         return channel;
     }
 
+    @Value("${CA_URL}")
+    protected String caURL;
+
     @PostConstruct
     protected void setup() {
         try {
@@ -62,6 +70,11 @@ public class BaseBlockchainRepository {
             channel.addEventHub(eventHub);
             channel.addOrderer(orderer);
             channel.initialize();
+
+            String username = UUID.randomUUID().toString();
+            String userSecret = credentialService.registerUser(username);
+            user = (IdemixUser) credentialService.getIdemixEnrolledUser(username, userSecret);
+            client.setUserContext(user);
 
         } catch (Exception e) {
             e.printStackTrace();

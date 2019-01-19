@@ -21,19 +21,6 @@ public class BookingRepository extends BaseBlockchainRepository {
     CredentialService credentialService;
 
 
-    @Override
-    protected void setup() {
-        try {
-            String username = "test1";
-            super.setup();
-            String userSecret = credentialService.registerUser(username);
-            user = credentialService.getIdemixEnrolledUser(username, userSecret);
-            client.setUserContext(user);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     /**
      * Check if date range is bookable.
      *
