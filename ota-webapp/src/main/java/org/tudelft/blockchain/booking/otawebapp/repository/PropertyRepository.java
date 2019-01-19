@@ -1,14 +1,17 @@
 package org.tudelft.blockchain.booking.otawebapp.repository;
 
+import org.hyperledger.fabric.sdk.HFClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.tudelft.blockchain.booking.otawebapp.model.Property;
 import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.AvailabilityStatus;
 import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.DateAvailabilityPair;
+import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.HFUser;
+import org.tudelft.blockchain.booking.otawebapp.repository.hyperledger.FabricRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -17,6 +20,9 @@ import java.util.List;
  */
 @Component
 public class PropertyRepository {
+
+    @Autowired
+    private FabricRepository fabricRepository;
 
     private List<Property> dummyPropertyList = new ArrayList<>();
 
@@ -52,6 +58,14 @@ public class PropertyRepository {
         dateAvailabilityPairs
                 .add(new DateAvailabilityPair(LocalDate.now().plusDays(2), AvailabilityStatus.AVAILABLE));
         return dateAvailabilityPairs;
+
+    }
+
+    public void createPropertyChannel(String adminUsername, String affiliation, String mspId, String peerName, String peerUrl, String eventHubName, String eventHubUrl,
+                                      String ordererName, String ordererUrl, String channelName) throws Exception {
+        HFUser admin = fabricRepository.getAdmin(adminUsername, affiliation, mspId);
+        HFClient adminClient = fabricRepository.getAdminClient(admin);
+        fabricRepository.createChannel(adminClient, admin, peerName, peerUrl, eventHubName, eventHubUrl, ordererName, ordererUrl, channelName);
 
     }
 }

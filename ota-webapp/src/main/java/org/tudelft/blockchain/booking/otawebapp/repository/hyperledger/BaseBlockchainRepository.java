@@ -21,7 +21,7 @@ public class BaseBlockchainRepository {
 
     protected Channel channel;
 
-    private CryptoSuite cryptoSuite;
+    protected static CryptoSuite cryptoSuite;
 
     public Collection<Peer> getPeers() {
         return channel.getPeers();

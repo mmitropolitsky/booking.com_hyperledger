@@ -21,4 +21,9 @@ public class PropertyService {
         return propertyRepository.getAvailableDates(propertyId, startDate, endDate);
     }
 
+    public void createPropertyChannel(String adminUsername, String affiliation, String mspId, String peerName, String peerUrl, String eventHubName, String eventHubUrl,
+                                      String ordererName, String ordererUrl, String channelName) throws Exception {
+        propertyRepository.createPropertyChannel(adminUsername, affiliation, mspId, peerName, peerUrl, eventHubName, eventHubUrl, ordererName, ordererUrl, channelName);
+    }
+
 }
