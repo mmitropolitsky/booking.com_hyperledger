@@ -4,13 +4,14 @@ import org.hyperledger.fabric.sdk.ChannelConfiguration;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-@Component
+@Service
 public class ChannelConfigurationService {
 
     @Value("${org.tudelft.blockchain.booking.channel.configuration.path}")

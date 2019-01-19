@@ -33,9 +33,8 @@ public class PropertyController {
         return propertyService.getAvailableDates(propertyId, startDate, endDate);
     }
 
-    @PostMapping("/channels")
-    public void createChannel(@RequestParam String channelName) throws Exception {
-        propertyService.createPropertyChannel("admin", "org1", "Org1MSP", "peer0.org1.example.com", "grpc://localhost:7051",
-                "eventhub01", "grpc://localhost:7053", "orderer.example.com", "grpc://localhost:7050", channelName);
+    @PostMapping
+    public void initProperty(@RequestParam String propertyName) throws Exception {
+        propertyService.initProperty(propertyName);
     }
 }

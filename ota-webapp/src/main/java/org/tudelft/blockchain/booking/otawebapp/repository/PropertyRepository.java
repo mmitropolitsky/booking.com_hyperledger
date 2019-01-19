@@ -1,8 +1,9 @@
 package org.tudelft.blockchain.booking.otawebapp.repository;
 
+import org.hyperledger.fabric.sdk.Channel;
 import org.hyperledger.fabric.sdk.HFClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.tudelft.blockchain.booking.otawebapp.model.Property;
 import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.AvailabilityStatus;
 import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.DateAvailabilityPair;
@@ -18,7 +19,7 @@ import java.util.List;
  * Used to get data either from the blockchain or from a storage.
  * This is a DUMMY implementation
  */
-@Component
+@Repository
 public class PropertyRepository {
 
     @Autowired
@@ -61,11 +62,8 @@ public class PropertyRepository {
 
     }
 
-    public void createPropertyChannel(String adminUsername, String affiliation, String mspId, String peerName, String peerUrl, String eventHubName, String eventHubUrl,
-                                      String ordererName, String ordererUrl, String channelName) throws Exception {
-        HFUser admin = fabricRepository.getAdmin(adminUsername, affiliation, mspId);
-        HFClient adminClient = fabricRepository.getAdminClient(admin);
-        fabricRepository.createChannel(adminClient, admin, peerName, peerUrl, eventHubName, eventHubUrl, ordererName, ordererUrl, channelName);
-
+    public Channel createPropertyChannel(HFClient adminClient, HFUser admin, String peerName, String peerUrl, String eventHubName, String eventHubUrl,
+                                         String ordererName, String ordererUrl, String channelName) throws Exception {
+        return fabricRepository.createChannel(adminClient, admin, peerName, peerUrl, eventHubName, eventHubUrl, ordererName, ordererUrl, channelName);
     }
 }
