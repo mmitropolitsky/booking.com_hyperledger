@@ -1,7 +1,5 @@
 package org.tudelft.blockchain.booking.otawebapp.service;
 
-import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
-import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.tudelft.blockchain.booking.otawebapp.repository.hyperledger.BookingRepository;
@@ -16,7 +14,7 @@ public class BookingService {
 
         try {
             return bookingRepository.isBookable(fromDate, toDate);
-        } catch (ProposalException | InvalidArgumentException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
@@ -25,7 +23,7 @@ public class BookingService {
     public boolean book(String fromDate, String toDate) {
         try {
             return bookingRepository.book(fromDate, toDate);
-        } catch (ProposalException | InvalidArgumentException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;

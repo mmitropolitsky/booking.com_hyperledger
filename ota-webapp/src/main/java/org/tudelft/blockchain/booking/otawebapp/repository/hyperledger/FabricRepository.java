@@ -1,24 +1,19 @@
 package org.tudelft.blockchain.booking.otawebapp.repository.hyperledger;
 
 import org.hyperledger.fabric.sdk.*;
-import org.hyperledger.fabric.sdk.exception.ChaincodeEndorsementPolicyParseException;
-import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
-import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.HFUser;
 import org.tudelft.blockchain.booking.otawebapp.service.ChannelConfigurationService;
-import org.tudelft.blockchain.booking.otawebapp.util.Util;
+import org.tudelft.blockchain.booking.otawebapp.service.CredentialService;
+import org.tudelft.blockchain.booking.otawebapp.service.NetworkService;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,31 +21,20 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hyperledger.fabric.sdk.Channel.PeerOptions.createPeerOptions;
 
 @Component
-public class FabricRepository extends BaseBlockchainRepository {
-
-    @Value("${org.tudelft.blockchain.booking.admin.private.key.path}")
-    String adminPrivateKeyPath;
-
-    @Value("${org.tudelft.blockchain.booking.admin.certificate.path}")
-    String adminCertificatePath;
+public class FabricRepository {
 
     @Autowired
-    private ChannelConfigurationService channelConfigurationService;
+    NetworkService networkService;
 
-    @Override
-    public Enrollment getEnrollment() throws Exception {
-        File pkFolder = new File(adminPrivateKeyPath);
-        File[] pkFiles = pkFolder.listFiles();
+    @Autowired
+    ChannelConfigurationService channelConfigurationService;
 
-        File certFolder = new File(adminCertificatePath);
-        File[] certFiles = certFolder.listFiles();
-
-        return Util.getEnrollment(pkFolder.getPath(), pkFiles[0].getName(), certFolder.getPath(), certFiles[0].getName());
-    }
-
-    public Channel createChannel(HFClient client, HFUser admin, String peerName, String peerUrl, String eventHubName, String eventHubUrl,
+    public Channel createChannel(HFUser admin, String peerName, String peerUrl, String eventHubName, String eventHubUrl,
                                  String ordererName, String ordererUrl, String channelName) throws Exception {
         try {
+            networkService.changeToOrgAdminContext();
+            HFClient client = networkService.getClient();
+
             Peer peer = client.newPeer(peerName, peerUrl);
             EventHub eventHub = client.newEventHub(eventHubName, eventHubUrl);
             Orderer orderer = client.newOrderer(ordererName, ordererUrl);
@@ -60,6 +44,7 @@ public class FabricRepository extends BaseBlockchainRepository {
             newChannel.addOrderer(orderer);
             newChannel.joinPeer(peer, createPeerOptions().setPeerRoles(EnumSet.of(Peer.PeerRole.ENDORSING_PEER, Peer.PeerRole.LEDGER_QUERY, Peer.PeerRole.CHAINCODE_QUERY, Peer.PeerRole.EVENT_SOURCE))); //Default is all roles.
             newChannel.initialize();
+            networkService.changeToUserContext();
 
             return newChannel;
         } catch (Exception e) {
@@ -68,26 +53,10 @@ public class FabricRepository extends BaseBlockchainRepository {
         }
     }
 
-    public HFUser getAdmin(String adminUsername, String affiliation, String mspId) throws Exception {
-        try {
-            Enrollment adminEnrollment = getEnrollment();
-            return new HFUser(adminUsername, affiliation, mspId, adminEnrollment);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
-    }
-
-    public HFClient getAdminClient(HFUser admin) throws Exception{
-        client = HFClient.createNewInstance();
-        client.setCryptoSuite(cryptoSuite);
-        client.setUserContext(admin);
-        return client;
-    }
-
     public Collection<ProposalResponse> deployChainCode(String chainCodeName, String codepath, String version, Collection<Peer> peers)
-            throws InvalidArgumentException, ProposalException {
-
+            throws Exception {
+        networkService.changeToOrgAdminContext();
+        HFClient client = networkService.getClient();
 
         ChaincodeID.Builder chaincodeIDBuilder = ChaincodeID.newBuilder().setName(chainCodeName).setVersion(version);
         ChaincodeID chaincodeID = chaincodeIDBuilder.build();
@@ -106,12 +75,18 @@ public class FabricRepository extends BaseBlockchainRepository {
         request.setChaincodeMetaInfLocation(new File(codepath + File.separator + "manifests"));
         request.setChaincodeVersion(version);
 
-        return client.sendInstallProposal(request, peers);
+        Collection<ProposalResponse> responses = client.sendInstallProposal(request, peers);
+        networkService.changeToUserContext();
+        return responses;
     }
 
     public Collection<ProposalResponse> instantiateChainCode(Channel channel, String chaincodeName, String version, String chaincodePath,
                                                              String functionName, String[] functionArgs, String policyPath)
-            throws InvalidArgumentException, ProposalException, ChaincodeEndorsementPolicyParseException, IOException, ExecutionException, InterruptedException {
+            throws Exception {
+
+        networkService.changeToOrgAdminContext();
+        HFClient client = networkService.getClient();
+
 
         Logger.getLogger(FabricRepository.class.getName()).log(Level.INFO,
                 "Instantiate proposal request " + chaincodeName + " on channel " + channel.getName()
@@ -137,19 +112,30 @@ public class FabricRepository extends BaseBlockchainRepository {
         tm.put("method", "InstantiateProposalRequest".getBytes(UTF_8));
         instantiateProposalRequest.setTransientMap(tm);
 
-        if (policyPath != null) {
-            ChaincodeEndorsementPolicy chaincodeEndorsementPolicy = new ChaincodeEndorsementPolicy();
-            chaincodeEndorsementPolicy.fromYamlFile(new File(policyPath));
-            instantiateProposalRequest.setChaincodeEndorsementPolicy(chaincodeEndorsementPolicy);
-        }
+//        ChaincodeEndorsementPolicy chaincodeEndorsementPolicy = new ChaincodeEndorsementPolicy();
+//        if (policyPath != null) {
+//            chaincodeEndorsementPolicy.fromFile(new File(policyPath));
+//            instantiateProposalRequest.setChaincodeEndorsementPolicy(chaincodeEndorsementPolicy);
+//        }
 
         Collection<ProposalResponse> responses = channel.sendInstantiationProposal(instantiateProposalRequest);
         CompletableFuture<BlockEvent.TransactionEvent> cf = channel.sendTransaction(responses);
+        networkService.changeToUserContext();
+
         cf.get();
 
         Logger.getLogger(FabricRepository.class.getName()).log(Level.INFO,
                 "Chaincode " + chaincodeName + " on channel " + channel.getName() + " instantiation " + cf);
+
         return responses;
+    }
+
+    public Collection<Peer> getPeers() {
+        return networkService.getPeers();
+    }
+
+    public Channel getChannel() {
+        return networkService.getChannel();
     }
 
 }
