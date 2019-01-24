@@ -20,7 +20,6 @@ public class PropertyController {
     }
 
 
-
     @GetMapping("/{propertyId}")
     public Property getPropertyById(@PathVariable("propertyId") String propertyId) {
         return new Property(propertyId, "address", "desc");
@@ -32,5 +31,10 @@ public class PropertyController {
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate) {
         return propertyService.getAvailableDates(propertyId, startDate, endDate);
+    }
+
+    @PostMapping
+    public void initProperty(@RequestParam String propertyName) throws Exception {
+        propertyService.initProperty(propertyName);
     }
 }

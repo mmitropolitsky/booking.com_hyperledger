@@ -3,10 +3,14 @@ package org.tudelft.blockchain.booking.otawebapp.repository.hyperledger;
 import org.hyperledger.fabric.sdk.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.HFUser;
+import org.tudelft.blockchain.booking.otawebapp.service.ChannelConfigurationService;
+import org.tudelft.blockchain.booking.otawebapp.service.CredentialService;
 import org.tudelft.blockchain.booking.otawebapp.service.NetworkService;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -14,12 +18,40 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.hyperledger.fabric.sdk.Channel.PeerOptions.createPeerOptions;
 
 @Component
 public class FabricRepository {
 
     @Autowired
     NetworkService networkService;
+
+    @Autowired
+    ChannelConfigurationService channelConfigurationService;
+
+    public Channel createChannel(HFUser admin, String peerName, String peerUrl, String eventHubName, String eventHubUrl,
+                                 String ordererName, String ordererUrl, String channelName) throws Exception {
+        try {
+            networkService.changeToOrgAdminContext();
+            HFClient client = networkService.getClient();
+
+            Peer peer = client.newPeer(peerName, peerUrl);
+            EventHub eventHub = client.newEventHub(eventHubName, eventHubUrl);
+            Orderer orderer = client.newOrderer(ordererName, ordererUrl);
+            ChannelConfiguration channelConfiguration = channelConfigurationService.createChannelConfiguration(channelName);
+            Channel newChannel = client.newChannel(channelName, orderer, channelConfiguration, client.getChannelConfigurationSignature(channelConfiguration, admin));
+            newChannel.addEventHub(eventHub);
+            newChannel.addOrderer(orderer);
+            newChannel.joinPeer(peer, createPeerOptions().setPeerRoles(EnumSet.of(Peer.PeerRole.ENDORSING_PEER, Peer.PeerRole.LEDGER_QUERY, Peer.PeerRole.CHAINCODE_QUERY, Peer.PeerRole.EVENT_SOURCE))); //Default is all roles.
+            newChannel.initialize();
+            networkService.changeToUserContext();
+
+            return newChannel;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
 
     public Collection<ProposalResponse> deployChainCode(String chainCodeName, String codepath, String version, Collection<Peer> peers)
             throws Exception {
@@ -47,7 +79,6 @@ public class FabricRepository {
         networkService.changeToUserContext();
         return responses;
     }
-
 
     public Collection<ProposalResponse> instantiateChainCode(Channel channel, String chaincodeName, String version, String chaincodePath,
                                                              String functionName, String[] functionArgs, String policyPath)
