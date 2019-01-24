@@ -53,6 +53,9 @@ public class CredentialService {
     @Value("${org.tudelft.blockchain.booking.ca.mspid}")
     protected String mspID;
 
+    @Value("${org.tudelft.blockchain.booking.ca.idemixmspid}")
+    protected String idemixMspID;
+
     @Value("${org.tudelft.blockchain.booking.admin.private.key.path}")
     String adminPrivateKeyPath;
 
@@ -184,15 +187,17 @@ public class CredentialService {
      */
     public IdemixUser getIdemixEnrolledUser(User user)
             throws EnrollmentException, InvalidArgumentException {
-        Enrollment enrollment = hfcaClient.idemixEnroll(user.getEnrollment(), mspID);
+//        Enrollment enrollment = hfcaClient.idemixEnroll(user.getEnrollment(), mspID);
+        Enrollment enrollment = hfcaClient.idemixEnroll(user.getEnrollment(), idemixMspID);
         IdemixEnrollment idemixEnrollment = (IdemixEnrollment) enrollment;
+//        IdemixUser idemixUser = new IdemixUser(user.getName(), user.getMspId(), idemixEnrollment);
         IdemixUser idemixUser = new IdemixUser(user.getName(), user.getMspId(), idemixEnrollment);
         userRepository.putIdemixUser(idemixUser);
 
         return idemixUser;
     }
 
-    public User getIdemixEnrolledUser(String username, String password) throws Exception {
+    public IdemixUser getIdemixEnrolledUser(String username, String password) throws Exception {
         return this.getIdemixEnrolledUser(this.getEnrolledUser(username, password));
     }
 
