@@ -262,4 +262,3 @@ Profiles:
             Organizations:
                 - *Org1
                 - *Org1Idemix
-

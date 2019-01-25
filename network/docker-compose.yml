@@ -19,10 +19,13 @@ services:
       - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/org1_sk
     ports:
       - "7054:7054"
-    command: sh -c 'mkdir -p /etc/hyperledger/fabric-ca-server;cp -R /tmp/msp /etc/hyperledger/fabric-ca-server; mv /etc/hyperledger/fabric-ca-server/msp/*PublicKey /etc/hyperledger/fabric-ca-server; fabric-ca-server start -b admin:adminpw'
+    command: fabric-ca-server start -b admin:adminpw --cfg.affiliations.allowremove --cfg.identities.allowremove --loglevel debug
     volumes:
       - ./crypto-config/peerOrganizations/org1.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
-      - ./crypto-config/peerOrganizations/idemixMSP1.example.com/msp/:/tmp/msp:ro
+      - ./crypto-config/peerOrganizations/idemixMSP1.example.com/msp/IssuerPublicKey:/etc/hyperledger/fabric-ca-server/IssuerPublicKey
+      - ./crypto-config/peerOrganizations/idemixMSP1.example.com/msp/RevocationPublicKey:/etc/hyperledger/fabric-ca-server/RevocationPublicKey
+      - ./crypto-config/peerOrganizations/idemixMSP1.example.com/ca/RevocationKey:/etc/hyperledger/fabric-ca-server/keystore/RevocationSecretKey
+      - ./crypto-config/peerOrganizations/idemixMSP1.example.com/ca/IssuerSecretKey:/etc/hyperledger/fabric-ca-server/keystore/IssuerSecretKey
 
     container_name: ca.example.com
     networks:
