@@ -26,6 +26,8 @@ services:
       - ./crypto-config/peerOrganizations/idemixMSP1.example.com/msp/RevocationPublicKey:/etc/hyperledger/fabric-ca-server/RevocationPublicKey
       - ./crypto-config/peerOrganizations/idemixMSP1.example.com/ca/RevocationKey:/etc/hyperledger/fabric-ca-server/keystore/RevocationSecretKey
       - ./crypto-config/peerOrganizations/idemixMSP1.example.com/ca/IssuerSecretKey:/etc/hyperledger/fabric-ca-server/keystore/IssuerSecretKey
+      # Idemix Default Signer
+      - ./crypto-config/peerOrganizations/idemixMSP1.example.com/user:/etc/hyperledger/fabric-ca-server/user
 
     container_name: ca.example.com
     networks:

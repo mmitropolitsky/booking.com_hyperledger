@@ -23,10 +23,11 @@ mv ./crypto-config/peerOrganizations/org1.example.com/ca/*_sk ./crypto-config/pe
 
 mkdir -p ./crypto-config/peerOrganizations/idemixMSP1.example.com
 idemixgen ca-keygen --output=./crypto-config/peerOrganizations/idemixMSP1.example.com
-#idemixgen signerconfig -u client --output=./crypto-config/peerOrganizations/idemixMSP1.example.com
 if [ "$?" -ne 0 ]; then
   echo "Failed to generate Org1Idemix crypto material..."
   exit 1
+else
+  idemixgen signerconfig -u Fabric -e 'johndoe' -r 1234 --output=./crypto-config/peerOrganizations/idemixMSP1.example.com
 fi
 
 mkdir -p ./config
