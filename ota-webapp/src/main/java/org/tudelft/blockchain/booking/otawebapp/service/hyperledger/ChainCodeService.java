@@ -1,5 +1,6 @@
-package org.tudelft.blockchain.booking.otawebapp.service;
+package org.tudelft.blockchain.booking.otawebapp.service.hyperledger;
 
+import org.hyperledger.fabric.sdk.Channel;
 import org.hyperledger.fabric.sdk.ProposalResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,24 +21,35 @@ public class ChainCodeService {
     String chaincodePath;
 
     public void deployAndInstantiateChainCode() throws Exception {
+//        installChainCode();
+//        instantiateChainCode();
+    }
+
+    public String installOverbookingChainCode(String orgName, String propertyName, Channel channel) throws Exception {
+        String chainCodeName = propertyName + "Overbooking";
         Collection<ProposalResponse> deployProposalResponses =
-                fabricRepository.deployChainCode("OverbookingChainCode", chaincodePath, "1", fabricRepository.getPeers());
+                fabricRepository.deployChainCode(orgName, chainCodeName, chaincodePath, "1", channel.getPeers());
 
         for (ProposalResponse res : deployProposalResponses) {
             Logger.getLogger(ChainCodeService.class.getName()).log(Level.INFO,
                     "Overbooking" + "- Chain code deployment " + res.getStatus());
         }
 
-        String[] args = new String[0];
+        return chainCodeName;
+    }
+
+    // TODO change return type?
+    public void instantiateChainCode(String orgName, String chaincodeName, Channel channel, String[] args) throws Exception {
+
         Collection<ProposalResponse> instantiationProposalResponses =
-                fabricRepository.instantiateChainCode(fabricRepository.getChannel(), "OverbookingChainCode", "1",
+                fabricRepository.instantiateChainCode(orgName, channel, chaincodeName, "1",
                         "overbooking", "init", args, "./out/production/resources/policy.yml");
 
         for (ProposalResponse res : instantiationProposalResponses) {
             Logger.getLogger(ChainCodeService.class.getName()).log(Level.INFO,
                     "Overbooking" + "- Chain code instantiation " + res.getStatus());
         }
-
     }
+
 
 }

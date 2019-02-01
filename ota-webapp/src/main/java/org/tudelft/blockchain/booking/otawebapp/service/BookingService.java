@@ -10,19 +10,18 @@ public class BookingService {
     @Autowired
     BookingRepository bookingRepository;
 
-    public boolean isBookable(String fromDate, String toDate) {
-
+    public boolean isBookable(String orgName, String propertyName, String fromDate, String toDate) {
         try {
-            return bookingRepository.isBookable(fromDate, toDate);
+            return bookingRepository.isBookable(orgName, propertyName, fromDate, toDate);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
 
-    public boolean book(String fromDate, String toDate) {
+    public boolean book(String orgName, String propertyName, String fromDate, String toDate) {
         try {
-            return bookingRepository.book(fromDate, toDate);
+            return bookingRepository.book(orgName, propertyName, fromDate, toDate);
         } catch (Exception e) {
             e.printStackTrace();
         }
