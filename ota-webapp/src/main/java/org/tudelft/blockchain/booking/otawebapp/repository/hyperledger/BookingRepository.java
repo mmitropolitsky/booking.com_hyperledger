@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.tudelft.blockchain.booking.otawebapp.service.FabricClientService;
 import org.tudelft.blockchain.booking.otawebapp.service.OrganizationCredentialService;
+import org.tudelft.blockchain.booking.otawebapp.service.hyperledger.ChannelService;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -22,6 +23,10 @@ public class BookingRepository {
 
     @Autowired
     OrganizationCredentialService organizationCredentialService;
+
+    @Autowired
+    ChannelService channelService;
+
 
     /**
      * Check if date range is bookable.
@@ -40,9 +45,9 @@ public class BookingRepository {
         User user = organizationCredentialService.getCaAdmin(orgName);
         fabricClientService.changeContext(user);
 
-        QueryByChaincodeRequest qpr = getQueryByChaincodeRequest(fromDate, toDate, "isBookable");
+        QueryByChaincodeRequest qpr = getQueryByChaincodeRequest(propertyName, fromDate, toDate, "isBookable");
 
-        Collection<ProposalResponse> res = fabricClientService.getChannel(propertyName, orgName).queryByChaincode(qpr);
+        Collection<ProposalResponse> res = channelService.getChannel(orgName, propertyName).queryByChaincode(qpr);
         // display response
         for (ProposalResponse pres : res) {
             String stringResponse = new String(pres.getChaincodeActionResponsePayload());
@@ -70,7 +75,7 @@ public class BookingRepository {
         fabricClientService.changeContext(user);
 
         Channel channel = fabricClientService.getChannel(orgName, propertyName);
-        TransactionProposalRequest request = getBookTransactionProposalRequest(fromDate, toDate);
+        TransactionProposalRequest request = getBookTransactionProposalRequest(propertyName, fromDate, toDate);
 
         Collection<ProposalResponse> responses = channel.sendTransactionProposal(request, channel.getPeers());
 
@@ -89,9 +94,9 @@ public class BookingRepository {
     }
 
     // TODO clean this up
-    private TransactionProposalRequest getBookTransactionProposalRequest(String fromDate, String toDate) throws InvalidArgumentException {
+    private TransactionProposalRequest getBookTransactionProposalRequest(String propertyName, String fromDate, String toDate) throws InvalidArgumentException {
         TransactionProposalRequest request = fabricClientService.getClient().newTransactionProposalRequest();
-        ChaincodeID ccid = ChaincodeID.newBuilder().setName("OverbookingChainCode").build();
+        ChaincodeID ccid = ChaincodeID.newBuilder().setName(propertyName + "Overbooking").build();
         request.setChaincodeID(ccid);
         request.setFcn("book");
         String[] arguments = {fromDate, toDate};
@@ -110,9 +115,9 @@ public class BookingRepository {
         return request;
     }
 
-    private QueryByChaincodeRequest getQueryByChaincodeRequest(String fromDate, String toDate, String method) {
+    private QueryByChaincodeRequest getQueryByChaincodeRequest(String propertyName, String fromDate, String toDate, String method) {
         QueryByChaincodeRequest qpr = fabricClientService.getClient().newQueryProposalRequest();
-        ChaincodeID overbookingCCID = ChaincodeID.newBuilder().setName("OverbookingChainCode").build();
+        ChaincodeID overbookingCCID = ChaincodeID.newBuilder().setName(propertyName + "Overbooking").build();
         qpr.setChaincodeID(overbookingCCID);
         qpr.setFcn(method);
         qpr.setArgs(fromDate, toDate);
