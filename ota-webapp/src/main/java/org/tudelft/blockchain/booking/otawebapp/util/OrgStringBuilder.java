@@ -1,41 +1,99 @@
 package org.tudelft.blockchain.booking.otawebapp.util;
 
-public class OrgStringBuilder {
-    public static String getDomainName(String orgName) {
-        // turn OtaA to ota-a
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+@Component
+public class OrgStringBuilder {
+
+    /**
+     * Peer URLs
+     */
+    @Value("${org.tudelft.blockchain.booking.po.peer.port}")
+    private int peerPortPropertyOwner;
+
+    @Value("${org.tudelft.blockchain.booking.ota.a.peer.port}")
+    private int peerPortOtaA;
+
+    @Value("${org.tudelft.blockchain.booking.ota.b.peer.port}")
+    private int peerPortOtaB;
+
+    /**
+     * Event hubs
+     */
+    @Value("${org.tudelft.blockchain.booking.po.eventhub.port}")
+    private int eventHubPortPropertyOwner;
+
+    @Value("${org.tudelft.blockchain.booking.ota.a.eventhub.port}")
+    private int eventHubPortOtaA;
+
+    @Value("${org.tudelft.blockchain.booking.ota.b.eventhub.port}")
+    private int eventHubPortOtaB;
+
+
+    public String getDomainName(String orgName) {
+        // turn OtaA to ota-a.tudelft.org
         return orgName.replaceAll("([^_A-Z])([A-Z])", "$1-$2").toLowerCase() + ".tudelft.org";
     }
 
-    public static String getPeerName(String orgName, int peerNumber) {
+    public String getPeerName(String orgName, int peerNumber) {
+        // turn OtaA, 0 to peer0.ota-a.org.tudelft.org
         return "peer" + peerNumber + "." + getDomainName(orgName);
     }
 
-    public static String getPeerUrl() {
-        return "grpc://localhost:7051";
+    public String getPeerUrl(String orgName) {
+        int port;
+        switch (orgName) {
+            case "OtaA":
+                port = peerPortOtaA;
+                break;
+            case "OtaB":
+                port = peerPortOtaB;
+                break;
+            case "PropertyOwner":
+            default:
+                port = peerPortPropertyOwner;
+                break;
+
+        }
+        return "grpc://localhost:" + port;//o"7051";
     }
 
-    public static String getEventHubName() {
+    public String getEventHubName() {
         return "eventhub01";
     }
 
-    public static String getEventHubUrl() {
-        return "grpc://localhost:7053";
+    public String getEventHubUrl(String orgName) {
+        int port;
+        switch (orgName) {
+            case "OtaA":
+                port = eventHubPortOtaA;
+                break;
+            case "OtaB":
+                port = eventHubPortOtaB;
+                break;
+            case "PropertyOwner":
+            default:
+                port = eventHubPortPropertyOwner;
+                break;
+
+        }
+        return "grpc://localhost:" + port;//o"7051";
     }
 
-    public static String getOrdererName() {
+    public String getOrdererName() {
         return "orderer.example.com";
     }
 
-    public static String getOrdererUrl() {
+    public String getOrdererUrl() {
         return "grpc://localhost:7050";
     }
 
-    public static String getCaUrl() {
+    public String getCaUrl() {
         return "http://localhost:7054";
     }
 
-    public static String getMspId(String orgName) {
+    public String getMspId(String orgName) {
         return orgName + "MSP";
     }
 }

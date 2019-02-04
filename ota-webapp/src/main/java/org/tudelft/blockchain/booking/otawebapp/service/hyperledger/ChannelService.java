@@ -7,15 +7,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.tudelft.blockchain.booking.otawebapp.service.FabricClientService;
 import org.tudelft.blockchain.booking.otawebapp.service.OrganizationCredentialService;
+import org.tudelft.blockchain.booking.otawebapp.util.OrgStringBuilder;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.EnumSet;
 
 import static org.hyperledger.fabric.sdk.Channel.PeerOptions.createPeerOptions;
-import static org.tudelft.blockchain.booking.otawebapp.util.OrgStringBuilder.*;
 
 @Service
 public class ChannelService {
@@ -30,6 +29,12 @@ public class ChannelService {
     @Autowired
     OrganizationCredentialService organizationCredentialService;
 
+    @Autowired
+    OrgStringBuilder orgStringBuilder;
+
+    @Autowired
+    ChainCodeService chainCodeService;
+
     @Value("${org.tudelft.blockchain.booking.channel.configuration.path}")
     String configPath;
 
@@ -40,7 +45,7 @@ public class ChannelService {
         fabricClientService.changeContext(admin);
         HFClient client = fabricClientService.getClient();
 
-        Orderer orderer = client.newOrderer(getOrdererName(), getOrdererUrl());
+        Orderer orderer = client.newOrderer(orgStringBuilder.getOrdererName(), orgStringBuilder.getOrdererUrl());
         ChannelConfiguration channelConfiguration = channelConfigurationService.createChannelConfiguration(channelName);
         Channel newChannel = client.newChannel(channelName, orderer, channelConfiguration, client.getChannelConfigurationSignature(channelConfiguration, admin));
 
@@ -57,9 +62,9 @@ public class ChannelService {
         if (channel == null) {
             channel = client.newChannel(channelName);
         }
-        Peer peer = client.newPeer(getPeerName(orgName, 0), getPeerUrl());
-        EventHub eventHub = client.newEventHub(getEventHubName(), getEventHubUrl());
-        Orderer orderer = client.newOrderer(getOrdererName(), getOrdererUrl());
+        Peer peer = client.newPeer(orgStringBuilder.getPeerName(orgName, 0), orgStringBuilder.getPeerUrl(orgName));
+        EventHub eventHub = client.newEventHub(orgStringBuilder.getEventHubName(), orgStringBuilder.getEventHubUrl(orgName));
+        Orderer orderer = client.newOrderer(orgStringBuilder.getOrdererName(), orgStringBuilder.getOrdererUrl());
         channel.addEventHub(eventHub);
         channel.addOrderer(orderer);
         channel.addPeer(peer);
@@ -76,23 +81,23 @@ public class ChannelService {
         if (channel == null) {
             channel = client.newChannel(channelName);
         }
-        initializeChannel(orgName, channel);
+        channel = initializeChannel(orgName, channel);
+        chainCodeService.installOverbookingChainCode(orgName, channelName, channel);
+
     }
 
     private Channel initializeChannel(String orgName, Channel channel) throws Exception {
         try {
-            User admin = organizationCredentialService.getOrgAdmin(orgName);
-            fabricClientService.changeContext(admin);
+//            User admin = organizationCredentialService.getOrgAdmin(orgName);
+//            fabricClientService.changeContext(admin);
             HFClient client = fabricClientService.getClient();
 
-            Peer peer = client.newPeer(getPeerName(orgName, 0), getPeerUrl());
-            EventHub eventHub = client.newEventHub(getEventHubName(), getEventHubUrl());
-            Orderer orderer = client.newOrderer(getOrdererName(), getOrdererUrl());
+            Peer peer = client.newPeer(orgStringBuilder.getPeerName(orgName, 0), orgStringBuilder.getPeerUrl(orgName));
+            EventHub eventHub = client.newEventHub(orgStringBuilder.getEventHubName(), orgStringBuilder.getEventHubUrl(orgName));
+            Orderer orderer = client.newOrderer(orgStringBuilder.getOrdererName(), orgStringBuilder.getOrdererUrl());
             channel.addEventHub(eventHub);
             channel.addOrderer(orderer);
-            channel.joinPeer(peer, createPeerOptions()
-                    .setPeerRoles(EnumSet.of(Peer.PeerRole.ENDORSING_PEER, Peer.PeerRole.LEDGER_QUERY,
-                            Peer.PeerRole.CHAINCODE_QUERY, Peer.PeerRole.EVENT_SOURCE))); //Default is all roles.
+            channel.joinPeer(peer, createPeerOptions()); //Default is all roles.
             channel.initialize();
 
             // TODO change to user context?
@@ -109,7 +114,7 @@ public class ChannelService {
     public ChannelConfiguration createChannelConfiguration(String channelName) throws Exception {
         try {
             String channelConfigurationOutputPath = configPath + File.separator + channelName + ".tx";
-            String command = "configtxgen -profile " + CHANNEL_CONFIG_PROFILE +
+            String command = "/home/milko/Projects/fabric-samples/bin/configtxgen -profile " + CHANNEL_CONFIG_PROFILE +
                     " -outputCreateChannelTx " + channelConfigurationOutputPath +
                     " -channelID " + channelName;
             System.out.println(command);

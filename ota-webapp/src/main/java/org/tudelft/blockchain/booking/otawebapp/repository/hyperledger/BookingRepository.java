@@ -71,10 +71,11 @@ public class BookingRepository {
      * @throws Exception
      */
     public boolean book(String orgName, String propertyName, String fromDate, String toDate) throws Exception {
-        User user = organizationCredentialService.getUser(orgName);
+//        User user = organizationCredentialService.getUser(orgName);
+        User user = organizationCredentialService.getCaAdmin(orgName);
         fabricClientService.changeContext(user);
 
-        Channel channel = fabricClientService.getChannel(orgName, propertyName);
+        Channel channel = channelService.getChannel(orgName, propertyName);
         TransactionProposalRequest request = getBookTransactionProposalRequest(propertyName, fromDate, toDate);
 
         Collection<ProposalResponse> responses = channel.sendTransactionProposal(request, channel.getPeers());
@@ -118,6 +119,7 @@ public class BookingRepository {
     private QueryByChaincodeRequest getQueryByChaincodeRequest(String propertyName, String fromDate, String toDate, String method) {
         QueryByChaincodeRequest qpr = fabricClientService.getClient().newQueryProposalRequest();
         ChaincodeID overbookingCCID = ChaincodeID.newBuilder().setName(propertyName + "Overbooking").build();
+        qpr.setChaincodeLanguage(TransactionRequest.Type.JAVA);
         qpr.setChaincodeID(overbookingCCID);
         qpr.setFcn(method);
         qpr.setArgs(fromDate, toDate);

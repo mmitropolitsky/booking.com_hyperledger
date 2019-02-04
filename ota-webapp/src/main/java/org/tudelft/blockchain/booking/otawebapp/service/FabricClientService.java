@@ -2,6 +2,7 @@ package org.tudelft.blockchain.booking.otawebapp.service;
 
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.security.CryptoSuite;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.tudelft.blockchain.booking.otawebapp.util.OrgStringBuilder;
@@ -23,6 +24,9 @@ public class FabricClientService {
     private User user;
 
     private CryptoSuite cryptoSuite;
+
+    @Autowired
+    OrgStringBuilder orgStringBuilder;
 
     @PostConstruct
     private void setup() {
@@ -67,7 +71,7 @@ public class FabricClientService {
     public Channel getChannel(String channelName, String orgName) throws Exception {
         Channel channel = client.getChannel(channelName);
         if (channel == null) {
-            String peerName = OrgStringBuilder.getPeerName(orgName, 0);
+            String peerName = orgStringBuilder.getPeerName(orgName, 0);
             Peer peer = client.newPeer(peerName, "grpc://localhost:7051");
             EventHub eventHub = client.newEventHub("eventhub01", "grpc://localhost:7053");
             Orderer orderer = client.newOrderer("orderer.example.com", "grpc://localhost:7050");

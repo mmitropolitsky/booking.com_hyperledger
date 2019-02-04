@@ -7,6 +7,7 @@ import org.hyperledger.fabric_ca.sdk.HFCAClient;
 import org.hyperledger.fabric_ca.sdk.RegistrationRequest;
 import org.hyperledger.fabric_ca.sdk.exception.EnrollmentException;
 import org.hyperledger.fabric_ca.sdk.exception.InvalidArgumentException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.CAEnrollment;
@@ -37,6 +38,9 @@ public class OrganizationCredentialService {
     @Value("${org.tudelft.blockchain.booking.admin.password}")
     private String adminPassword;
 
+    @Autowired
+    OrgStringBuilder orgStringBuilder;
+
     @PostConstruct
     private void init() throws Exception {
         setupHfCaClient();
@@ -52,10 +56,11 @@ public class OrganizationCredentialService {
 
     /**
      * Setup org admin
+     *
      * @param orgName
      */
     private void setupOrgAdmin(String orgName) {
-        String domainName = OrgStringBuilder.getDomainName(orgName);
+        String domainName = orgStringBuilder.getDomainName(orgName);
         File pkFolder = new File(buildAdminMspPrivateKeyPath(domainName));
         File[] pkFiles = pkFolder.listFiles();
 
@@ -70,11 +75,12 @@ public class OrganizationCredentialService {
             e.printStackTrace();
         }
 
-        preparedOrgAdmins.put(orgName, new HFUser("admin", orgName, OrgStringBuilder.getMspId(orgName), enrollment));
+        preparedOrgAdmins.put(orgName, new HFUser("admin", orgName, orgStringBuilder.getMspId(orgName), enrollment));
     }
 
     /**
      * Setup org admin
+     *
      * @param username
      * @param password
      * @param orgName
@@ -83,7 +89,7 @@ public class OrganizationCredentialService {
      */
     private void setupCaAdmin(String username, String password, String orgName) throws EnrollmentException, InvalidArgumentException {
         Enrollment adminEnrollment = hfcaClient.enroll(username, password);
-        HFUser caAdmin = new HFUser("admin", orgName, OrgStringBuilder.getMspId(orgName), adminEnrollment);
+        HFUser caAdmin = new HFUser("admin", orgName, orgStringBuilder.getMspId(orgName), adminEnrollment);
         Set<String> roles = new RolesSet();
         roles.add("admin");
         caAdmin.setRoles(roles);
@@ -93,6 +99,7 @@ public class OrganizationCredentialService {
 
     /**
      * Setup org admin with default username/password
+     *
      * @param orgName
      * @throws EnrollmentException
      * @throws InvalidArgumentException
@@ -103,6 +110,7 @@ public class OrganizationCredentialService {
 
     /**
      * Register and save user
+     *
      * @param orgName
      * @param username
      * @throws Exception
@@ -112,7 +120,7 @@ public class OrganizationCredentialService {
         RegistrationRequest registrationRequest = new RegistrationRequest(username, orgName);
         String secret = hfcaClient.register(registrationRequest, registrar);
         Enrollment enrollment = hfcaClient.enroll(username, secret);
-        HFUser user = new HFUser(username, orgName, OrgStringBuilder.getMspId(orgName), enrollment);
+        HFUser user = new HFUser(username, orgName, orgStringBuilder.getMspId(orgName), enrollment);
 
         Set<String> roles = new RolesSet();
         roles.add("member");
@@ -122,6 +130,7 @@ public class OrganizationCredentialService {
 
     /**
      * Register a user with a default name
+     *
      * @param orgName
      * @throws Exception
      */
@@ -131,6 +140,7 @@ public class OrganizationCredentialService {
 
     /**
      * Setup the HFCA Client
+     *
      * @throws Exception
      */
     private void setupHfCaClient() throws Exception {
@@ -138,11 +148,10 @@ public class OrganizationCredentialService {
         Properties properties = new Properties();
         properties.setProperty("allowAllHostnames", "true");
 
-        hfcaClient = HFCAClient.createNewInstance(OrgStringBuilder.getCaUrl(), properties);
+        hfcaClient = HFCAClient.createNewInstance(orgStringBuilder.getCaUrl(), properties);
         // Set crypto primitives to the default crypto primitives returned by the factory
         hfcaClient.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
     }
-
 
 
     public User getOrgAdmin(String orgName) {
@@ -171,7 +180,7 @@ public class OrganizationCredentialService {
     }
 
     private String buildAdminCertsPath(String domainName) {
-        String cryptoConfigPeerOrgFolderLocation = "";
+        String cryptoConfigPeerOrgFolderLocation = "/home/milko/Projects/fabric-samples/booking_network/crypto-config/peerOrganizations";
         return cryptoConfigPeerOrgFolderLocation + File.separator + domainName + File.separator + "users/Admin@" + domainName + File.separator;
     }
 

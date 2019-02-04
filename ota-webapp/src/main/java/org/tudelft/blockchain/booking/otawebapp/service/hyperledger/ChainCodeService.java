@@ -20,10 +20,6 @@ public class ChainCodeService {
     @Value("${org.tudelft.blockchain.booking.chaincode.path}")
     String chaincodePath;
 
-    public void deployAndInstantiateChainCode() throws Exception {
-//        installChainCode();
-//        instantiateChainCode();
-    }
 
     public String installOverbookingChainCode(String orgName, String propertyName, Channel channel) throws Exception {
         String chainCodeName = propertyName + "Overbooking";
@@ -43,7 +39,7 @@ public class ChainCodeService {
 
         Collection<ProposalResponse> instantiationProposalResponses =
                 fabricRepository.instantiateChainCode(orgName, channel, chaincodeName, "1",
-                        "overbooking", "init", args, "./out/production/resources/policy.yml");
+                        "overbooking", "init", args, null);//"./out/production/resources/policy.yml");
 
         for (ProposalResponse res : instantiationProposalResponses) {
             Logger.getLogger(ChainCodeService.class.getName()).log(Level.INFO,
