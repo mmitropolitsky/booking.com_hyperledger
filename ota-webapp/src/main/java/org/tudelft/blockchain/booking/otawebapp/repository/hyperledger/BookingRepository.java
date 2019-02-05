@@ -39,10 +39,7 @@ public class BookingRepository {
      * @throws Exception
      */
     public boolean isBookable(String orgName, String propertyName, String fromDate, String toDate) throws Exception {
-        // QUERY THE BLOCKCHAIN
-
-//        User user = organizationCredentialService.getUser(orgName);
-        User user = organizationCredentialService.getCaAdmin(orgName);
+        User user = organizationCredentialService.getOrgAdmin(orgName);
         fabricClientService.changeContext(user);
 
         QueryByChaincodeRequest qpr = getQueryByChaincodeRequest(propertyName, fromDate, toDate, "isBookable");
@@ -71,8 +68,7 @@ public class BookingRepository {
      * @throws Exception
      */
     public boolean book(String orgName, String propertyName, String fromDate, String toDate) throws Exception {
-//        User user = organizationCredentialService.getUser(orgName);
-        User user = organizationCredentialService.getCaAdmin(orgName);
+        User user = organizationCredentialService.getOrgAdmin(orgName);
         fabricClientService.changeContext(user);
 
         Channel channel = channelService.getChannel(orgName, propertyName);
@@ -102,7 +98,7 @@ public class BookingRepository {
         request.setFcn("book");
         String[] arguments = {fromDate, toDate};
         request.setArgs(arguments);
-        request.setProposalWaitTime(1000);
+        request.setProposalWaitTime(180000);
         request.setChaincodeLanguage(TransactionRequest.Type.JAVA);
 
         Map<String, byte[]> tm2 = new HashMap<>();
