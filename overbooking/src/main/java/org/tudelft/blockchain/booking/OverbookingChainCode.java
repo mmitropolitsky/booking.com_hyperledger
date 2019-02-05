@@ -56,7 +56,7 @@ public class OverbookingChainCode extends ChaincodeBase {
             return validationResponse;
         }
 
-        List<LocalDate> validatedParams = Arrays.asList(LocalDate.parse(args.get(0)), LocalDate.parse(args.get(1)));
+        List<LocalDate> validatedParams = Arrays.asList(LocalDate.parse(args.get(0)), LocalDate.parse(args.get(1)).minusDays(1));
 
         //OTA may check availability
         if (isBookableFunction.equals(function)) {
@@ -168,7 +168,7 @@ public class OverbookingChainCode extends ChaincodeBase {
         LocalDate startDate = params.get(0);
         LocalDate endDate = params.get(1);
 
-        while (!startDate.isAfter(endDate.minusDays(1))) {
+        while (!startDate.isAfter(endDate)) {
 
             stub.putStringState(startDate.toString(), isBooked);
             startDate = startDate.plusDays(1);

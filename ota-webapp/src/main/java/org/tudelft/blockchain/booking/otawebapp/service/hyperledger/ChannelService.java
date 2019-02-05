@@ -2,6 +2,7 @@ package org.tudelft.blockchain.booking.otawebapp.service.hyperledger;
 
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
+import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -52,9 +53,27 @@ public class ChannelService {
         ChannelConfiguration channelConfiguration = channelConfigurationService.createChannelConfiguration(channelName);
         Channel newChannel = client.newChannel(channelName, orderer, channelConfiguration, client.getChannelConfigurationSignature(channelConfiguration, admin));
 
-        initializeChannel(orgName, newChannel);
+        joinChannel(orgName, newChannel);
 
         return newChannel;
+    }
+
+    public Channel joinChannel(String orgName, Channel channel) throws Exception {
+        User admin = organizationCredentialService.getOrgAdmin(orgName);
+        fabricClientService.changeContext(admin);
+        HFClient client = fabricClientService.getClient();
+
+        addOrdererAndEventHubToChannel(client, orgName, channel);
+
+        joinPeer(client, orgName, channel);
+
+        channel.initialize();
+
+        return channel;
+    }
+
+    public Channel joinChannel(String orgName, String channelName) throws Exception {
+        return joinChannel(orgName, getChannel(orgName, channelName));
     }
 
     public Channel getChannel(String orgName, String channelName) throws Exception {
@@ -65,54 +84,15 @@ public class ChannelService {
         if (channel == null) {
             channel = client.newChannel(channelName);
         }
+
+        addOrdererAndEventHubToChannel(client, orgName, channel);
+
         Peer peer = client.newPeer(orgStringBuilder.getPeerName(orgName, 0), orgStringBuilder.getPeerUrl(orgName));
-        EventHub eventHub = client.newEventHub(orgStringBuilder.getEventHubName(), orgStringBuilder.getEventHubUrl(orgName));
-        Orderer orderer = client.newOrderer(orgStringBuilder.getOrdererName(), orgStringBuilder.getOrdererUrl());
-        channel.addEventHub(eventHub);
-        channel.addOrderer(orderer);
         channel.addPeer(peer);
+
         channel.initialize();
         return channel;
     }
-
-    public void joinChannel(String orgName, String channelName) throws Exception {
-        User admin = organizationCredentialService.getOrgAdmin(orgName);
-        fabricClientService.changeContext(admin);
-        HFClient client = fabricClientService.getClient();
-
-        Channel channel = client.getChannel(channelName);
-        if (channel == null) {
-            channel = client.newChannel(channelName);
-        }
-        channel = initializeChannel(orgName, channel);
-        chainCodeService.installOverbookingChainCode(orgName, channelName, channel);
-
-    }
-
-    private Channel initializeChannel(String orgName, Channel channel) throws Exception {
-        try {
-//            User admin = organizationCredentialService.getOrgAdmin(orgName);
-//            fabricClientService.changeContext(admin);
-            HFClient client = fabricClientService.getClient();
-
-            Peer peer = client.newPeer(orgStringBuilder.getPeerName(orgName, 0), orgStringBuilder.getPeerUrl(orgName));
-            EventHub eventHub = client.newEventHub(orgStringBuilder.getEventHubName(), orgStringBuilder.getEventHubUrl(orgName));
-            Orderer orderer = client.newOrderer(orgStringBuilder.getOrdererName(), orgStringBuilder.getOrdererUrl());
-            channel.addEventHub(eventHub);
-            channel.addOrderer(orderer);
-            channel.joinPeer(peer, createPeerOptions()); //Default is all roles.
-            channel.initialize();
-
-            // TODO change to user context?
-//            networkService.changeToUserContext();
-
-            return channel;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
-    }
-
 
     public ChannelConfiguration createChannelConfiguration(String channelName) throws Exception {
         try {
@@ -149,4 +129,15 @@ public class ChannelService {
         return response.toString();
     }
 
+    private void joinPeer(HFClient client, String orgName, Channel channel) throws ProposalException, InvalidArgumentException {
+        Peer peer = client.newPeer(orgStringBuilder.getPeerName(orgName, 0), orgStringBuilder.getPeerUrl(orgName));
+        channel.joinPeer(peer, createPeerOptions()); //Default is all roles.
+    }
+
+    private void addOrdererAndEventHubToChannel(HFClient client, String orgName, Channel channel) throws InvalidArgumentException {
+        EventHub eventHub = client.newEventHub(orgStringBuilder.getEventHubName(), orgStringBuilder.getEventHubUrl(orgName));
+        Orderer orderer = client.newOrderer(orgStringBuilder.getOrdererName(), orgStringBuilder.getOrdererUrl());
+        channel.addEventHub(eventHub);
+        channel.addOrderer(orderer);
+    }
 }

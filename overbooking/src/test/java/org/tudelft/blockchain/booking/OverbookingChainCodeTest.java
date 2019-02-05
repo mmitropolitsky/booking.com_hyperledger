@@ -246,7 +246,7 @@ public class OverbookingChainCodeTest {
         QueryResultsIterator<KeyValue> current = mock(QueryResultsIterator.class);
         when(current.iterator()).thenReturn(dates.iterator());
 
-        when(chaincodeStub.getStateByRange(datesParam.get(0), datesParam.get(1))).thenReturn(current);
+        when(chaincodeStub.getStateByRange(datesParam.get(0), "2019-07-03")).thenReturn(current);
 
         //when(overbookingChainCode.isBookable(chaincodeStub, someMockDate, someMockDate)).thenReturn(false);
         Response response = overbookingChainCode.invoke(chaincodeStub);

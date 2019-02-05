@@ -26,7 +26,8 @@ public class PropertyService {
     }
 
     public void joinProperty(String orgName, String propertyName) throws Exception {
-        channelService.joinChannel(orgName, propertyName);
+        Channel channel = channelService.joinChannel(orgName, propertyName);
+        chainCodeService.installOverbookingChainCode(orgName, propertyName, channel);
     }
 
 
