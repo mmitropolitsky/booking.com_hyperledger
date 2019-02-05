@@ -168,7 +168,7 @@ public class OverbookingChainCode extends ChaincodeBase {
         LocalDate startDate = params.get(0);
         LocalDate endDate = params.get(1);
 
-        while (!startDate.isAfter(endDate)) {
+        while (!startDate.isAfter(endDate.minusDays(1))) {
 
             stub.putStringState(startDate.toString(), isBooked);
             startDate = startDate.plusDays(1);
