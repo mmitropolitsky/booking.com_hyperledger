@@ -38,6 +38,9 @@ public class ChannelService {
     @Value("${org.tudelft.blockchain.booking.channel.configuration.path}")
     String configPath;
 
+    @Value("${org.tudelft.blockchain.booking.configtxgen}")
+    String configtxCommandPath;
+
     private static final String CHANNEL_CONFIG_PROFILE = "ThreeOrgChannel";
 
     public Channel createChannel(String orgName, String channelName) throws Exception {
@@ -114,7 +117,7 @@ public class ChannelService {
     public ChannelConfiguration createChannelConfiguration(String channelName) throws Exception {
         try {
             String channelConfigurationOutputPath = configPath + File.separator + channelName + ".tx";
-            String command = "/home/milko/Projects/fabric-samples/bin/configtxgen -profile " + CHANNEL_CONFIG_PROFILE +
+            String command = configtxCommandPath + " -profile " + CHANNEL_CONFIG_PROFILE +
                     " -outputCreateChannelTx " + channelConfigurationOutputPath +
                     " -channelID " + channelName;
             System.out.println(command);
@@ -132,7 +135,7 @@ public class ChannelService {
         Runtime rt = Runtime.getRuntime();
         StringBuilder response = new StringBuilder();
         try {
-            Process process = rt.exec(new String[] {"bash", "-c", command});
+            Process process = rt.exec(new String[]{"bash", "-c", command});
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             while ((line = bufferedReader.readLine()) != null) {

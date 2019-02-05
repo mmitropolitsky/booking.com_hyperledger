@@ -15,7 +15,6 @@ import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.HFUser;
 import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.RolesSet;
 import org.tudelft.blockchain.booking.otawebapp.util.OrgStringBuilder;
 
-import javax.annotation.PostConstruct;
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.nio.file.Files;
@@ -30,21 +29,18 @@ import java.util.*;
 @Component
 public class OrganizationCredentialService {
 
-    private HFCAClient hfcaClient;
-
     @Value("${org.tudelft.blockchain.booking.admin.username}")
     private String adminUsername;
 
     @Value("${org.tudelft.blockchain.booking.admin.password}")
     private String adminPassword;
 
+    @Value("${org.tudelft.blockchain.booking.peer.orgs.path}")
+    private String peerOrganizationCryptoPath;
+
     @Autowired
     OrgStringBuilder orgStringBuilder;
 
-    @PostConstruct
-    private void init() throws Exception {
-        setupHfCaClient();
-    }
 
     // TODO this should be in repository, maybe in a database
     private Map<String, User> preparedOrgAdmins = new HashMap<>();
@@ -52,6 +48,8 @@ public class OrganizationCredentialService {
     private Map<String, User> preparedCaAdmins = new HashMap<>();
 
     private Map<String, User> preparedUsers = new HashMap<>();
+
+    private Map<String, HFCAClient> orgHfcaClients = new HashMap<>();
 
 
     /**
@@ -87,8 +85,8 @@ public class OrganizationCredentialService {
      * @throws EnrollmentException
      * @throws InvalidArgumentException
      */
-    private void setupCaAdmin(String username, String password, String orgName) throws EnrollmentException, InvalidArgumentException {
-        Enrollment adminEnrollment = hfcaClient.enroll(username, password);
+    private void setupCaAdmin(String username, String password, String orgName) throws Exception {
+        Enrollment adminEnrollment = getHfcaClient(orgName).enroll(username, password);
         HFUser caAdmin = new HFUser("admin", orgName, orgStringBuilder.getMspId(orgName), adminEnrollment);
         Set<String> roles = new RolesSet();
         roles.add("admin");
@@ -104,7 +102,7 @@ public class OrganizationCredentialService {
      * @throws EnrollmentException
      * @throws InvalidArgumentException
      */
-    private void setupCaAdmin(String orgName) throws EnrollmentException, InvalidArgumentException {
+    private void setupCaAdmin(String orgName) throws Exception {
         setupCaAdmin(adminUsername, adminPassword, orgName);
     }
 
@@ -116,6 +114,7 @@ public class OrganizationCredentialService {
      * @throws Exception
      */
     private void setupUser(String orgName, String username) throws Exception {
+        HFCAClient hfcaClient = getHfcaClient(orgName);
         User registrar = getCaAdmin(orgName);
         RegistrationRequest registrationRequest = new RegistrationRequest(username, orgName);
         String secret = hfcaClient.register(registrationRequest, registrar);
@@ -143,16 +142,25 @@ public class OrganizationCredentialService {
      *
      * @throws Exception
      */
-    private void setupHfCaClient() throws Exception {
+    private void setupHfCaClient(String orgName) throws Exception {
         // cf Fabric Java SDK source code for HFCAClient for documentation on supported Properties
         Properties properties = new Properties();
         properties.setProperty("allowAllHostnames", "true");
 
-        hfcaClient = HFCAClient.createNewInstance(orgStringBuilder.getCaUrl(), properties);
+        HFCAClient hfcaClient = HFCAClient.createNewInstance(orgStringBuilder.getCaUrl(orgName), properties);
         // Set crypto primitives to the default crypto primitives returned by the factory
         hfcaClient.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
+
+        orgHfcaClients.put(orgName, hfcaClient);
     }
 
+    public HFCAClient getHfcaClient(String orgName) throws Exception {
+        if (!orgHfcaClients.containsKey(orgName)) {
+            setupHfCaClient(orgName);
+        }
+
+        return orgHfcaClients.get(orgName);
+    }
 
     public User getOrgAdmin(String orgName) {
         if (!preparedOrgAdmins.containsKey(orgName)) {
@@ -163,7 +171,7 @@ public class OrganizationCredentialService {
         return preparedOrgAdmins.get(orgName);
     }
 
-    public User getCaAdmin(String orgName) throws EnrollmentException, InvalidArgumentException {
+    public User getCaAdmin(String orgName) throws Exception {
         if (!preparedCaAdmins.containsKey(orgName)) {
             setupCaAdmin(orgName);
         }
@@ -180,8 +188,7 @@ public class OrganizationCredentialService {
     }
 
     private String buildAdminCertsPath(String domainName) {
-        String cryptoConfigPeerOrgFolderLocation = "/home/milko/Projects/fabric-samples/booking_network/crypto-config/peerOrganizations";
-        return cryptoConfigPeerOrgFolderLocation + File.separator + domainName + File.separator + "users/Admin@" + domainName + File.separator;
+        return peerOrganizationCryptoPath + File.separator + domainName + File.separator + "users/Admin@" + domainName + File.separator;
     }
 
     private String buildAdminMspPrivateKeyPath(String domainName) {

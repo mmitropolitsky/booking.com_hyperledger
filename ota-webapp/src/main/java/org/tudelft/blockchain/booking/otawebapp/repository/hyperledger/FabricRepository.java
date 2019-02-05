@@ -34,8 +34,8 @@ public class FabricRepository {
 
     public Collection<ProposalResponse> deployChainCode(String orgName, String chainCodeName, String codepath, String version, Collection<Peer> peers)
             throws Exception {
-//        User admin = organizationCredentialService.getOrgAdmin(orgName);
-//        fabricClientService.changeContext(admin);
+        User admin = organizationCredentialService.getOrgAdmin(orgName);
+        fabricClientService.changeContext(admin);
         HFClient client = fabricClientService.getClient();
 
         ChaincodeID.Builder chaincodeIDBuilder = ChaincodeID.newBuilder().setName(chainCodeName).setVersion(version);
@@ -63,8 +63,8 @@ public class FabricRepository {
                                                              String functionName, String[] functionArgs, String policyPath)
             throws Exception {
 
-//        User admin = organizationCredentialService.getOrgAdmin(orgName);
-//        fabricClientService.changeContext(admin);
+        User admin = organizationCredentialService.getOrgAdmin(orgName);
+        fabricClientService.changeContext(admin);
         HFClient client = fabricClientService.getClient();
 
 

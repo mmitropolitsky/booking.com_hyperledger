@@ -89,8 +89,12 @@ public class OrgStringBuilder {
         return "grpc://localhost:7050";
     }
 
-    public String getCaUrl() {
-        return "http://localhost:7054";
+    public String getCaUrl(String orgName) {
+        int port = 7054;
+        if ("OtaA".equals(orgName)) {
+            port = 8054;
+        }
+        return "http://localhost:" + port;
     }
 
     public String getMspId(String orgName) {
