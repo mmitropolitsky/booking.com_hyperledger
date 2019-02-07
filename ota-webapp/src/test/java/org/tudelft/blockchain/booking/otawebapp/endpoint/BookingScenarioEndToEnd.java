@@ -1,13 +1,13 @@
 package org.tudelft.blockchain.booking.otawebapp.endpoint;
 
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.runner.Result;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -23,15 +23,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class BookingScenarioEndToEnd {
 
     @Autowired
@@ -77,8 +77,8 @@ public class BookingScenarioEndToEnd {
     }
 
     @Test
-    public void createProperties() {
-        List<String> properties = bookings.stream().map(Booking::getPropertyName)
+    public void AcreateProperties() {
+        List<String> properties = bookings.stream().map(Booking::getPropertyName).distinct()
                 .collect(Collectors.toList());
         properties.forEach(p -> {
                     try {
@@ -92,17 +92,17 @@ public class BookingScenarioEndToEnd {
     }
 
     @Test
-    public void otaAJoinProperties() {
+    public void BotaAJoinProperties() throws Exception {
         joinProperty("OtaA");
     }
 
     @Test
-    public void otaBJoinProperties() {
+    public void CotaBJoinProperties() throws Exception {
         joinProperty("OtaB");
     }
 
-    private void joinProperty(String orgName) {
-        List<String> otaProperties = bookings.stream().filter(b -> b.getOtaName().equals(orgName)).map(Booking::getPropertyName)
+    private void joinProperty(String orgName) throws Exception {
+        List<String> otaProperties = bookings.stream().filter(b -> b.getOtaName().equals(orgName)).map(Booking::getPropertyName).distinct()
                 .collect(Collectors.toList());
         otaProperties.forEach(p -> {
                     try {
@@ -111,8 +111,10 @@ public class BookingScenarioEndToEnd {
                         e.printStackTrace();
                     }
                 }
-
         );
+
+//        mvc.perform(get("/api/ota/" + orgName + "/property0/isBookable").param("fromDate", "2019-10-05").param("toDate", "2019-10-10")).andExpect(status().isOk());
+
     }
 
     @Test
@@ -123,8 +125,11 @@ public class BookingScenarioEndToEnd {
                         ResultActions resultActions = mvc.perform(post("/api/ota/" + booking.getOtaName() + "/" + booking.getPropertyName() + "/book/")
                                 .param("fromDate", booking.getStartDate().toString()).param("toDate", booking.getEndDate().toString())).andDo(print())
                                 .andExpect(status().isOk());
-                        if (resultActions.andReturn().getResponse().getContentAsString() == "false") {
+                        System.out.println("Process booking " + booking.getId());
+                        if (!Boolean.valueOf(resultActions.andReturn().getResponse().getContentAsString())) {
+                            System.out.println("Caught overbooking " + booking);
                             counter++;
+                            System.out.println("Current overbooking count " + counter);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -132,6 +137,7 @@ public class BookingScenarioEndToEnd {
                 }
 
         );
+        System.out.println("Detected overbookings: " + counter);
 
     }
 

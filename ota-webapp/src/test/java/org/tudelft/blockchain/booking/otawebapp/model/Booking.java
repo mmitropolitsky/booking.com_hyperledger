@@ -49,6 +49,14 @@ public class Booking {
         this.endDate = endDate;
     }
 
+    public boolean overbookingAttempt(Booking booking) {
+        boolean a  = (booking.getStartDate().isAfter(this.getStartDate()) || booking.getStartDate().isEqual(this.getStartDate()))
+                && booking.getStartDate().isBefore(this.getEndDate());
+
+        boolean b = booking.getStartDate().isBefore(this.getStartDate()) && booking.getEndDate().isAfter(this.getStartDate());
+        return a || b;
+    }
+
     @Override
     public String toString() {
         return "Booking{" +
