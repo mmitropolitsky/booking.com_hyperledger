@@ -19,19 +19,14 @@ public class PropertyService {
 
         // TODO add db entry?
         Channel channel = channelService.createChannel(orgName, propertyName);
-        String chainCodeName = chainCodeService.installOverbookingChainCode(orgName, propertyName, channel);
-        chainCodeService.instantiateChainCode(orgName, propertyName + "Overbooking",
+        String chainCodeName = chainCodeService.installOverbookingChainCode(orgName, channel.getPeers());
+        chainCodeService.instantiateChainCode(orgName, chainCodeName,
                 channel, new String[0]);
 
     }
 
-    public void joinProperty(String orgName, String propertyName) throws Exception {
+    public synchronized void joinProperty(String orgName, String propertyName) throws Exception {
         Channel channel = channelService.joinChannel(orgName, propertyName);
-        chainCodeService.installOverbookingChainCode(orgName, propertyName, channel);
+        chainCodeService.installOverbookingChainCode(orgName, channel.getPeers());
     }
-
-
-//    public Collection<DateAvailabilityPair> getAvailableDates(String propertyId, LocalDate startDate, LocalDate endDate) {
-//        return propertyRepository.getAvailableDates(propertyId, startDate, endDate);
-//    }
 }

@@ -14,9 +14,14 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.tudelft.blockchain.booking.otawebapp.service.hyperledger.ChainCodeService.CHAINCODE_NAME;
 
 @Component
 public class BookingRepository {
+
+    public static String IS_BOOKABLE_FUNCTION_NAME = "isBookable";
+    public static String BOOK_FUNCTION_NAME = "book";
+    public static long PROPOSAL_WAIT_TIME = 180000;
 
     @Autowired
     FabricClientService fabricClientService;
@@ -42,7 +47,7 @@ public class BookingRepository {
         User user = organizationCredentialService.getOrgAdmin(orgName);
         fabricClientService.changeContext(user);
 
-        QueryByChaincodeRequest qpr = getQueryByChaincodeRequest(propertyName, fromDate, toDate, "isBookable");
+        QueryByChaincodeRequest qpr = getQueryByChaincodeRequest(fromDate, toDate, IS_BOOKABLE_FUNCTION_NAME);
 
         Collection<ProposalResponse> res = channelService.getChannel(orgName, propertyName).queryByChaincode(qpr);
         // display response
@@ -72,7 +77,7 @@ public class BookingRepository {
         fabricClientService.changeContext(user);
 
         Channel channel = channelService.getChannel(orgName, propertyName);
-        TransactionProposalRequest request = getBookTransactionProposalRequest(propertyName, fromDate, toDate);
+        TransactionProposalRequest request = getBookTransactionProposalRequest(fromDate, toDate);
 
         Collection<ProposalResponse> responses = channel.sendTransactionProposal(request, channel.getPeers());
 
@@ -90,31 +95,34 @@ public class BookingRepository {
         return te != null;
     }
 
-    // TODO clean this up
-    private TransactionProposalRequest getBookTransactionProposalRequest(String propertyName, String fromDate, String toDate) throws InvalidArgumentException {
+    private TransactionProposalRequest getBookTransactionProposalRequest(String fromDate, String toDate) throws InvalidArgumentException {
         TransactionProposalRequest request = fabricClientService.getClient().newTransactionProposalRequest();
-        ChaincodeID ccid = ChaincodeID.newBuilder().setName(propertyName + "Overbooking").build();
+        ChaincodeID ccid = ChaincodeID.newBuilder().setName(CHAINCODE_NAME).build();
         request.setChaincodeID(ccid);
-        request.setFcn("book");
+        request.setFcn(BOOK_FUNCTION_NAME);
         String[] arguments = {fromDate, toDate};
         request.setArgs(arguments);
-        request.setProposalWaitTime(180000);
+        request.setProposalWaitTime(PROPOSAL_WAIT_TIME);
         request.setChaincodeLanguage(TransactionRequest.Type.JAVA);
-
-        Map<String, byte[]> tm2 = new HashMap<>();
-        tm2.put("HyperLedgerFabric", "TransactionProposalRequest:JavaSDK".getBytes(UTF_8)); // Just some extra junk
-        // in transient map
-        tm2.put("method", "TransactionProposalRequest".getBytes(UTF_8)); // ditto
-        tm2.put("result", ":)".getBytes(UTF_8)); // This should be returned see chaincode why.
-        tm2.put("event", "!".getBytes(UTF_8)); // This should trigger an event see chaincode why.
-        request.setTransientMap(tm2);
+        request.setTransientMap(prepareTransientMap());
 
         return request;
     }
 
-    private QueryByChaincodeRequest getQueryByChaincodeRequest(String propertyName, String fromDate, String toDate, String method) {
+    // Necessary data to be able to use chaincode functionality
+    private Map<String, byte[]> prepareTransientMap() {
+        Map<String, byte[]> tm = new HashMap<>();
+        tm.put("HyperLedgerFabric", "TransactionProposalRequest:JavaSDK".getBytes(UTF_8));
+        // in transient map
+        tm.put("method", "TransactionProposalRequest".getBytes(UTF_8));
+        tm.put("result", ":)".getBytes(UTF_8));
+        tm.put("event", "!".getBytes(UTF_8));
+        return tm;
+    }
+
+    private QueryByChaincodeRequest getQueryByChaincodeRequest(String fromDate, String toDate, String method) {
         QueryByChaincodeRequest qpr = fabricClientService.getClient().newQueryProposalRequest();
-        ChaincodeID overbookingCCID = ChaincodeID.newBuilder().setName(propertyName + "Overbooking").build();
+        ChaincodeID overbookingCCID = ChaincodeID.newBuilder().setName(CHAINCODE_NAME).build();
         qpr.setChaincodeLanguage(TransactionRequest.Type.JAVA);
         qpr.setChaincodeID(overbookingCCID);
         qpr.setFcn(method);

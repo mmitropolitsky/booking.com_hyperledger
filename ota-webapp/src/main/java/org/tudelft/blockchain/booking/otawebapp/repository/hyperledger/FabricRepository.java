@@ -30,8 +30,6 @@ public class FabricRepository {
     OrganizationCredentialService organizationCredentialService;
 
 
-
-
     public Collection<ProposalResponse> deployChainCode(String orgName, String chainCodeName, String codepath, String version, Collection<Peer> peers)
             throws Exception {
         User admin = organizationCredentialService.getOrgAdmin(orgName);
@@ -56,7 +54,6 @@ public class FabricRepository {
         request.setChaincodeVersion(version);
 
         return client.sendInstallProposal(request, peers);
-//        fabricClientService.changeToUserContext();
     }
 
     public Collection<ProposalResponse> instantiateChainCode(String orgName, Channel channel, String chaincodeName, String version, String chaincodePath,
