@@ -9,22 +9,22 @@
 
 ### February 2019
 
-Antal Száva
+* Antal Száva
 
-Berenger Nguyen Nhon
+* Berenger Nguyen Nhon
 
-Maryam Tavakkoli
+* Maryam Tavakkoli, 4956222
 
-Milko Mitropolitsky
+* Milko Mitropolitsky
 
-Viktoriya Kutsarova
+* Viktoriya Kutsarova
 
 
 ## Problem
 
 Our team was presented with two problems - overbookings and night-cap problem. We have decided to focus only on the overbookings issue in order to be able to understand better the business case and build a suitable prototype.
 
-The overbookings problem appears when properties are listed on multiple Online Travel Agencies  (OTAs), e.g. Booking.com, Airbnb, etc. When a property is booked on any OTA platform, there is no mechanism to prevent booking it again on another platform. Currently, information synchronization between OTAs is either non-effective or generally non-existent.
+The overbookings problem appears when properties are listed on multiple Online Travel Agencies (OTAs), e.g. Booking.com, Airbnb, etc. When a property is booked on any OTA platform, there is no mechanism to prevent booking it again on another platform. Currently, information synchronization between OTAs is either non-effective or generally non-existent.
 
 
 ## Solution
@@ -34,7 +34,7 @@ Exploring opportunities with blockchain allows for a distributed solution which 
 
 ### Overview
 
-The high-level idea for the solution is quite simple. Each property, which is represented by a private channel. Only OTAs that work with that property are allowed to modify data, i.e. book dates via a smart contract.
+The high-level idea for the solution is quite simple. Each property, is represented by a private channel. Only OTAs that work with that property are allowed to modify data, i.e. book dates via a smart contract.
 
 A property owner (PO) can authorize OTAs to access this smart contract in order to check dates availability and perform bookings. The bookings are represented by transactions on the blockchain. Such authorization must also be revocable. No party outside that private channel (e.g. an OTA that does not work with that property and its owner) has any access to view or edit the data. All members of this channel should be able to query dates availability by reading the distributed ledger.
 
@@ -137,13 +137,14 @@ Assume an existing network having members for each OTA and a Property Owner. For
 *   _Orderers_: for the peer nodes to maintain the ledger, the transactions that they record must be ordered, with a way to reach consensus on this order. This is the role of the _orderer nodes_ that constitute the _ordering service_. Valid transactions are sent to this ordering service which decides on their order and sends them in the form of blocks to the peer nodes which add them to the existing chain.
 
 
+
 ![Architecture Overview](docs/architecture/Architecture_overview.jpg)
 
 
 _Figure 1: Architecture overview_
 
 The flow of a Fabric transaction is described in detail below and is shown in _Figure 2_. \
-	1. Propose a new transaction :
+1. Propose a new transaction :
 
 
 
