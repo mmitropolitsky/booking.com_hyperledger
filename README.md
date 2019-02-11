@@ -54,11 +54,9 @@ Given the assumptions about having private channels and zero-knowledge proofs, w
 
 The main reasons we chose Hyperledger Fabric is the promise of:
 
-
-
-    *   Private channels
-    *   ZKPs
-    *   Supports the property owners being offline most of the time
+*   Private channels
+*   ZKPs
+*   Supports the property owners being offline most of the time
 
 <table>
   <tr>
@@ -132,8 +130,6 @@ In this part, more details about the architecture of a Hyperledger Fabric networ
 
 Assume an existing network having members for each OTA and a Property Owner. For short we would call them Organizations. Each organization has several nodes in the network, each serving a different purpose.
 
-
-
 *   _Certificate Authority (CA):_ because Hyperledger Fabric is a permissioned blockchain, certificate authorities are required in order to sign, issue and verify certificates for all actors on the network. Each organization that is part of the network would need to have their own CA.
 *   _Chaincode_: in Hyperledger Fabric, smart contracts are called _chaincode. _A smart contract is a program, which is shared on the blockchain and can enforce rules that were programmed in them. 
     *   _For example: _verifying that a certain date is available for a booking transaction to be valid, otherwise, reject it_._
@@ -141,11 +137,7 @@ Assume an existing network having members for each OTA and a Property Owner. For
 *   _Orderers_: for the peer nodes to maintain the ledger, the transactions that they record must be ordered, with a way to reach consensus on this order. This is the role of the _orderer nodes_ that constitute the _ordering service_. Valid transactions are sent to this ordering service which decides on their order and sends them in the form of blocks to the peer nodes which add them to the existing chain.
 
 
-
-<p id="gdcalert1" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/Final-report0.jpg). Store image on your image server and adjust path/filename if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert2">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/Final-report0.jpg "image_tooltip")
+![Architecture Overview](docs/architecture/Architecture_overview.jpg)
 
 
 _Figure 1: Architecture overview_
@@ -184,10 +176,7 @@ The flow of a Fabric transaction is described in detail below and is shown in _F
 
 
 
-<p id="gdcalert2" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/Final-report1.png). Store image on your image server and adjust path/filename if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert3">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/Final-report1.png "image_tooltip")
+![Common-case transaction flow](https://hyperledger-fabric.readthedocs.io/en/latest/_images/flow-4.png)
 
 
 _Figure 2: Fabric transaction flow_
