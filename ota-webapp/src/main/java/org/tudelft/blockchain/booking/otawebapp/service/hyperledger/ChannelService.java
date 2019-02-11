@@ -21,20 +21,11 @@ import static org.hyperledger.fabric.sdk.Channel.PeerOptions.createPeerOptions;
 public class ChannelService {
 
 
-    @Autowired
-    FabricClientService fabricClientService;
+    private final FabricClientService fabricClientService;
 
-    @Autowired
-    ChannelService channelConfigurationService;
+    private final OrganizationCredentialService organizationCredentialService;
 
-    @Autowired
-    OrganizationCredentialService organizationCredentialService;
-
-    @Autowired
-    OrgStringBuilder orgStringBuilder;
-
-    @Autowired
-    ChainCodeService chainCodeService;
+    private final OrgStringBuilder orgStringBuilder;
 
     @Value("${org.tudelft.blockchain.booking.channel.configuration.path}")
     String configPath;
@@ -44,21 +35,30 @@ public class ChannelService {
 
     private static final String CHANNEL_CONFIG_PROFILE = "ThreeOrgChannel";
 
+    @Autowired
+    public ChannelService(FabricClientService fabricClientService,
+                          OrganizationCredentialService organizationCredentialService, OrgStringBuilder orgStringBuilder) {
+        this.fabricClientService = fabricClientService;
+        this.organizationCredentialService = organizationCredentialService;
+        this.orgStringBuilder = orgStringBuilder;
+    }
+
     public Channel createChannel(String orgName, String channelName) throws Exception {
         User admin = organizationCredentialService.getOrgAdmin(orgName);
         fabricClientService.changeContext(admin);
         HFClient client = fabricClientService.getClient();
 
         Orderer orderer = client.newOrderer(orgStringBuilder.getOrdererName(), orgStringBuilder.getOrdererUrl());
-        ChannelConfiguration channelConfiguration = channelConfigurationService.createChannelConfiguration(channelName);
-        Channel newChannel = client.newChannel(channelName, orderer, channelConfiguration, client.getChannelConfigurationSignature(channelConfiguration, admin));
+        ChannelConfiguration channelConfiguration = this.createChannelConfiguration(channelName);
+        Channel newChannel = client.newChannel(channelName, orderer, channelConfiguration,
+                client.getChannelConfigurationSignature(channelConfiguration, admin));
 
         joinChannel(orgName, newChannel);
 
         return newChannel;
     }
 
-    public Channel joinChannel(String orgName, Channel channel) throws Exception {
+    private Channel joinChannel(String orgName, Channel channel) throws Exception {
         User admin = organizationCredentialService.getOrgAdmin(orgName);
         fabricClientService.changeContext(admin);
         HFClient client = fabricClientService.getClient();
@@ -94,7 +94,7 @@ public class ChannelService {
         return channel;
     }
 
-    public ChannelConfiguration createChannelConfiguration(String channelName) throws Exception {
+    private ChannelConfiguration createChannelConfiguration(String channelName) throws Exception {
         try {
             String channelConfigurationOutputPath = configPath + File.separator + channelName + ".tx";
             String command = configtxCommandPath + " -profile " + CHANNEL_CONFIG_PROFILE +

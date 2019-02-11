@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.tudelft.blockchain.booking.otawebapp.service.FabricClientService;
 import org.tudelft.blockchain.booking.otawebapp.service.OrganizationCredentialService;
-import org.tudelft.blockchain.booking.otawebapp.service.hyperledger.ChannelService;
 
 import java.io.File;
 import java.util.Collection;
@@ -20,14 +19,15 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Component
 public class FabricRepository {
 
-    @Autowired
-    FabricClientService fabricClientService;
+    private final FabricClientService fabricClientService;
+
+    private final OrganizationCredentialService organizationCredentialService;
 
     @Autowired
-    ChannelService channelConfigurationService;
-
-    @Autowired
-    OrganizationCredentialService organizationCredentialService;
+    public FabricRepository(FabricClientService fabricClientService, OrganizationCredentialService organizationCredentialService) {
+        this.fabricClientService = fabricClientService;
+        this.organizationCredentialService = organizationCredentialService;
+    }
 
 
     public Collection<ProposalResponse> deployChainCode(String orgName, String chainCodeName, String codepath, String version, Collection<Peer> peers)
@@ -97,7 +97,6 @@ public class FabricRepository {
 
         Collection<ProposalResponse> responses = channel.sendInstantiationProposal(instantiateProposalRequest);
         CompletableFuture<BlockEvent.TransactionEvent> cf = channel.sendTransaction(responses);
-//        fabricClientService.changeToUserContext();
 
 //        cf.get();
 

@@ -9,11 +9,15 @@ import org.tudelft.blockchain.booking.otawebapp.service.hyperledger.ChannelServi
 @Component
 public class PropertyService {
 
-    @Autowired
-    private ChainCodeService chainCodeService;
+    private final ChainCodeService chainCodeService;
+
+    private final ChannelService channelService;
 
     @Autowired
-    private ChannelService channelService;
+    public PropertyService(ChainCodeService chainCodeService, ChannelService channelService) {
+        this.chainCodeService = chainCodeService;
+        this.channelService = channelService;
+    }
 
     public void createProperty(String orgName, String propertyName) throws Exception {
 

@@ -7,8 +7,12 @@ import org.tudelft.blockchain.booking.otawebapp.repository.hyperledger.BookingRe
 @Component
 public class BookingService {
 
+    private final BookingRepository bookingRepository;
+
     @Autowired
-    BookingRepository bookingRepository;
+    public BookingService(BookingRepository bookingRepository) {
+        this.bookingRepository = bookingRepository;
+    }
 
     public boolean isBookable(String orgName, String propertyName, String fromDate, String toDate) {
         try {

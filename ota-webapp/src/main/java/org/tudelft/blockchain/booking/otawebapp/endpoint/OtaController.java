@@ -9,11 +9,15 @@ import org.tudelft.blockchain.booking.otawebapp.service.PropertyService;
 @RequestMapping("api/ota")
 public class OtaController {
 
-    @Autowired
-    private BookingService bookingService;
+    private final BookingService bookingService;
+
+    private final PropertyService propertyService;
 
     @Autowired
-    private PropertyService propertyService;
+    public OtaController(BookingService bookingService, PropertyService propertyService) {
+        this.bookingService = bookingService;
+        this.propertyService = propertyService;
+    }
 
 
     @PostMapping("/{ota}/{propertyName}/book")

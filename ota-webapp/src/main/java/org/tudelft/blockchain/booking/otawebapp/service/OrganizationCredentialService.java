@@ -38,8 +38,7 @@ public class OrganizationCredentialService {
     @Value("${org.tudelft.blockchain.booking.peer.orgs.path}")
     private String peerOrganizationCryptoPath;
 
-    @Autowired
-    OrgStringBuilder orgStringBuilder;
+    private final OrgStringBuilder orgStringBuilder;
 
 
     // TODO this should be in repository, maybe in a database
@@ -50,6 +49,11 @@ public class OrganizationCredentialService {
     private Map<String, User> preparedUsers = new HashMap<>();
 
     private Map<String, HFCAClient> orgHfcaClients = new HashMap<>();
+
+    @Autowired
+    public OrganizationCredentialService(OrgStringBuilder orgStringBuilder) {
+        this.orgStringBuilder = orgStringBuilder;
+    }
 
 
     /**
@@ -86,11 +90,16 @@ public class OrganizationCredentialService {
      * @throws InvalidArgumentException
      */
     private void setupCaAdmin(String username, String password, String orgName) throws Exception {
-        Enrollment adminEnrollment = getHfcaClient(orgName).enroll(username, password);
+        HFCAClient hfcaClient = getHfcaClient(orgName);
+        Enrollment adminEnrollment = hfcaClient.enroll(username, password);
         HFUser caAdmin = new HFUser("admin", orgName, orgStringBuilder.getMspId(orgName), adminEnrollment);
         Set<String> roles = new RolesSet();
         roles.add("admin");
         caAdmin.setRoles(roles);
+
+        if (hfcaClient.getHFCAAffiliations(caAdmin).getChildren().stream().noneMatch(aff -> aff.getName().equals(orgName))) {
+            hfcaClient.newHFCAAffiliation(orgName).create(caAdmin);
+        }
         preparedCaAdmins.put(orgName, caAdmin);
     }
 
@@ -116,10 +125,14 @@ public class OrganizationCredentialService {
     private void setupUser(String orgName, String username) throws Exception {
         HFCAClient hfcaClient = getHfcaClient(orgName);
         User registrar = getCaAdmin(orgName);
+//        if (hfcaClient.getHFCAIdentities(registrar).stream().noneMatch(identity -> username.equals(identity.getEnrollmentId()))) {
         RegistrationRequest registrationRequest = new RegistrationRequest(username, orgName);
         String secret = hfcaClient.register(registrationRequest, registrar);
+//        }
         Enrollment enrollment = hfcaClient.enroll(username, secret);
-        HFUser user = new HFUser(username, orgName, orgStringBuilder.getMspId(orgName), enrollment);
+        Enrollment idemixEnrollment = hfcaClient.idemixEnroll(enrollment, orgStringBuilder.getMspId(orgName));
+        HFUser user = new HFUser(username, orgName, orgStringBuilder.getMspId(orgName), idemixEnrollment);
+//        HFUser user = new HFUser(username, orgName, orgStringBuilder.getMspId(orgName), enrollment);
 
         Set<String> roles = new RolesSet();
         roles.add("member");
@@ -151,10 +164,11 @@ public class OrganizationCredentialService {
         // Set crypto primitives to the default crypto primitives returned by the factory
         hfcaClient.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
 
+//        hfcaClient.newHFCAAffiliation(orgName);
         orgHfcaClients.put(orgName, hfcaClient);
     }
 
-    public HFCAClient getHfcaClient(String orgName) throws Exception {
+    private HFCAClient getHfcaClient(String orgName) throws Exception {
         if (!orgHfcaClients.containsKey(orgName)) {
             setupHfCaClient(orgName);
         }
@@ -171,7 +185,7 @@ public class OrganizationCredentialService {
         return preparedOrgAdmins.get(orgName);
     }
 
-    public User getCaAdmin(String orgName) throws Exception {
+    private User getCaAdmin(String orgName) throws Exception {
         if (!preparedCaAdmins.containsKey(orgName)) {
             setupCaAdmin(orgName);
         }

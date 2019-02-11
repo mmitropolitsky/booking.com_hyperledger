@@ -23,14 +23,19 @@ public class BookingRepository {
     public static String BOOK_FUNCTION_NAME = "book";
     public static long PROPOSAL_WAIT_TIME = 180000;
 
-    @Autowired
-    FabricClientService fabricClientService;
+    private final FabricClientService fabricClientService;
+
+    private final OrganizationCredentialService organizationCredentialService;
+
+    private final ChannelService channelService;
 
     @Autowired
-    OrganizationCredentialService organizationCredentialService;
-
-    @Autowired
-    ChannelService channelService;
+    public BookingRepository(FabricClientService fabricClientService,
+                             OrganizationCredentialService organizationCredentialService, ChannelService channelService) {
+        this.fabricClientService = fabricClientService;
+        this.organizationCredentialService = organizationCredentialService;
+        this.channelService = channelService;
+    }
 
 
     /**
@@ -44,12 +49,15 @@ public class BookingRepository {
      * @throws Exception
      */
     public boolean isBookable(String orgName, String propertyName, String fromDate, String toDate) throws Exception {
-        User user = organizationCredentialService.getOrgAdmin(orgName);
+//        User user = organizationCredentialService.getOrgAdmin(orgName);
+
+        Channel channel = channelService.getChannel(orgName, propertyName);
+        User user = organizationCredentialService.getUser(orgName);
         fabricClientService.changeContext(user);
 
         QueryByChaincodeRequest qpr = getQueryByChaincodeRequest(fromDate, toDate, IS_BOOKABLE_FUNCTION_NAME);
 
-        Collection<ProposalResponse> res = channelService.getChannel(orgName, propertyName).queryByChaincode(qpr);
+        Collection<ProposalResponse> res = channel.queryByChaincode(qpr);
         // display response
         for (ProposalResponse pres : res) {
             String stringResponse = new String(pres.getChaincodeActionResponsePayload());
@@ -73,11 +81,12 @@ public class BookingRepository {
      * @throws Exception
      */
     public boolean book(String orgName, String propertyName, String fromDate, String toDate) throws Exception {
-        User user = organizationCredentialService.getOrgAdmin(orgName);
-        fabricClientService.changeContext(user);
-
+//        User user = organizationCredentialService.getOrgAdmin(orgName);
         Channel channel = channelService.getChannel(orgName, propertyName);
         TransactionProposalRequest request = getBookTransactionProposalRequest(fromDate, toDate);
+        User user = organizationCredentialService.getUser(orgName);
+        fabricClientService.changeContext(user);
+
 
         Collection<ProposalResponse> responses = channel.sendTransactionProposal(request, channel.getPeers());
 

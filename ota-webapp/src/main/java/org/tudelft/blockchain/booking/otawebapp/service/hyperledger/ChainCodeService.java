@@ -17,14 +17,17 @@ import java.util.logging.Logger;
 @Component
 public class ChainCodeService {
 
+    private final FabricRepository fabricRepository;
     public static String CHAINCODE_NAME = "overbooking";
     private static Map<String, Boolean> peersInstalledChaincode = new HashMap<>();
 
-    @Autowired
-    FabricRepository fabricRepository;
-
     @Value("${org.tudelft.blockchain.booking.chaincode.path}")
     String chaincodePath;
+
+    @Autowired
+    public ChainCodeService(FabricRepository fabricRepository) {
+        this.fabricRepository = fabricRepository;
+    }
 
 
     public String installOverbookingChainCode(String orgName, Collection<Peer> peers) throws Exception {

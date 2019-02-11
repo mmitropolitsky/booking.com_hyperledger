@@ -23,17 +23,19 @@ public class FabricClientService {
 
     private User user;
 
-    private CryptoSuite cryptoSuite;
+    private final OrgStringBuilder orgStringBuilder;
 
     @Autowired
-    OrgStringBuilder orgStringBuilder;
+    public FabricClientService(OrgStringBuilder orgStringBuilder) {
+        this.orgStringBuilder = orgStringBuilder;
+    }
 
     @PostConstruct
     private void setup() {
         try {
 //            User admin = credentialService.getCaAdminUser();
 
-            cryptoSuite = CryptoSuite.Factory.getCryptoSuite();
+            CryptoSuite cryptoSuite = CryptoSuite.Factory.getCryptoSuite();
 
             // GET HF CLIENT
             client = HFClient.createNewInstance();
