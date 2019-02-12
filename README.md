@@ -9,15 +9,15 @@
 
 ### February 2019
 
-* Antal Száva
+* Antal Száva, 4958489
 
-* Berenger Nguyen Nhon
+* Berenger Nguyen Nhon, 4956125
 
 * Maryam Tavakkoli, 4956222
 
-* Milko Mitropolitsky
+* Milko Mitropolitsky, 4958543
 
-* Viktoriya Kutsarova
+* Viktoriya Kutsarova, 4958551
 
 
 ## Problem
@@ -203,10 +203,6 @@ To authenticate, an organization needs to get a certificate, issued by that orga
 
 With Idemix' current implementation anonymity within the channel extends only to which member of an organization is issuing the transaction. Hiding which organization is the creator of the transaction is still not realised and currently, that part of our implementation is not possible. The initial promise of Hyperledger to have the complete Attribute based ZKP is not implemented as of the latest version 1.4, but it is in the pipeline for future releases.
 
-![Swagger UI](docs/architecture/Swagger.png)
-
-
-_Figure 3: Swagger UI
 
 ## Learnings
 
