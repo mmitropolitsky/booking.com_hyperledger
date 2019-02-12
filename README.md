@@ -52,7 +52,7 @@ Permissioned blockchains take a different approach to solve this particular issu
 
 ### Why did we choose Hyperledger Fabric?
 
-Given the assumptions about having private channels and zero-knowledge proofs, we looked into different options. The fact that most of the property owners, that produce overbookings, are unreliable, also played a crucial role in our choice. Another reason was the option to have the PO offline most of the time.
+Given the assumptions about having private channels and zero-knowledge proofs, we looked into different options. The fact that most of the property owners, that produce overbookings, are unreliable, also played a crucial role in our choice. Another reason was the option to have the Property Owner offline most of the time.
 
 The main reasons we chose Hyperledger Fabric is the promise of:
 
@@ -197,7 +197,7 @@ Following is an example scenario depicting how all the elements work together in
 
 Assuming an existing network. Every organization has its own set of peer nodes, CAs, and databases for storing the ledger. 
 
-When a property owner creates a property, a private channel is created. Each channel has its own ledger. Within it, only parties, who have joined it can issue transactions. After the channel is created, the PO joins it and installs the chaincode on its peers if this is not done already.  The (possible) installation starts up a Chaincode node, which will then be shared for every instance of the chaincode, i.e. every property that PO creates. As a member of the channel, the PO can book dates as well on his own. The state of the channel is stored locally on the peer, in our case CouchDB.
+When a property owner creates a property, a private channel is created. Each channel has its own ledger. Within it, only parties, who have joined it can issue transactions. After the channel is created, the Property Owner joins it and installs the chaincode on its peers if this is not done already.  The (possible) installation starts up a Chaincode node, which will then be shared for every instance of the chaincode, i.e. every property that Property Owner creates. As a member of the channel, the Property Owner can book dates as well on his own. The state of the channel is stored locally on the peer, in our case CouchDB.
 
 The next step is when an OTA joins the channel. Before that moment every transaction should yield an "Access denied" response. When joining the channel, a similar process occurs to the one for the creator of the channel. The chaincode is installed (if not already) and is instantiated. The whole ledger of that channel is copied to the local CouchDB instance and the OTA can now book dates for the property, represented by the channel. Information about members of the channel is disseminated to all other members via an anchor peer - and best practice is that each organisation has at least one anchor peer. The same procedure occurs for every organization willing to join a channel. When an organization invokes the chaincode, a transaction of the type presented in _Figure 2<span style="text-decoration:underline;">.</span>_
 
