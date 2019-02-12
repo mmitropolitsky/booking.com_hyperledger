@@ -130,9 +130,7 @@ public class OrganizationCredentialService {
         String secret = hfcaClient.register(registrationRequest, registrar);
 //        }
         Enrollment enrollment = hfcaClient.enroll(username, secret);
-        Enrollment idemixEnrollment = hfcaClient.idemixEnroll(enrollment, orgStringBuilder.getMspId(orgName));
-        HFUser user = new HFUser(username, orgName, orgStringBuilder.getMspId(orgName), idemixEnrollment);
-//        HFUser user = new HFUser(username, orgName, orgStringBuilder.getMspId(orgName), enrollment);
+        HFUser user = new HFUser(username, orgName, orgStringBuilder.getMspId(orgName), enrollment);
 
         Set<String> roles = new RolesSet();
         roles.add("member");

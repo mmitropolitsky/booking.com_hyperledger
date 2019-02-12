@@ -1,7 +1,10 @@
 package org.tudelft.blockchain.booking.otawebapp.endpoint;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.tudelft.blockchain.booking.otawebapp.model.Response;
 import org.tudelft.blockchain.booking.otawebapp.service.BookingService;
 import org.tudelft.blockchain.booking.otawebapp.service.PropertyService;
 
@@ -21,42 +24,39 @@ public class OtaController {
 
 
     @PostMapping("/{ota}/{propertyName}/book")
-    public boolean book(
+    public ResponseEntity book(
             @PathVariable("ota") String ota,
             @PathVariable("propertyName") String propertyName,
             @RequestParam("fromDate") String fromDate,
             @RequestParam("toDate") String toDate) {
-        try {
-            System.out.println(ota);
-            return bookingService.book(ota, propertyName.toLowerCase(), fromDate, toDate);
-        } catch (Exception e) {
-            e.printStackTrace();
+        Response serviceResponse = bookingService.book(ota, propertyName.toLowerCase(), fromDate, toDate);
+
+        if (serviceResponse.getStatus() == Response.ResponseStatus.SUCCESS) {
+            return ResponseEntity.ok(serviceResponse.getMessage());
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(serviceResponse.getMessage());
         }
-        return false;
     }
 
     @GetMapping("/{ota}/{propertyName}/bookable")
-    public boolean isBookable(
+    public ResponseEntity isBookable(
             @PathVariable("ota") String ota,
             @PathVariable("propertyName") String propertyName,
             @RequestParam("fromDate") String fromDate,
             @RequestParam("toDate") String toDate) {
-        try {
-            return bookingService.isBookable(ota, propertyName.toLowerCase(), fromDate, toDate);
-        } catch (Exception e) {
-            e.printStackTrace();
+
+        Response serviceResponse = bookingService.isBookable(ota, propertyName.toLowerCase(), fromDate, toDate);
+
+        if (serviceResponse.getStatus() == Response.ResponseStatus.SUCCESS) {
+            return ResponseEntity.ok(serviceResponse.getMessage());
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(serviceResponse.getMessage());
         }
-        return false;
     }
 
     @GetMapping("/{ota}/join/{propertyName}")
-    public void joinChannel(@PathVariable("ota") String ota,
-                            @PathVariable("propertyName") String propertyName) {
-        // TODO fix chaincode instantiation
-        try {
-            propertyService.joinProperty(ota, propertyName.toLowerCase());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public ResponseEntity joinChannel(@PathVariable("ota") String ota,
+                                      @PathVariable("propertyName") String propertyName) {
+        return ResponseEntity.ok(propertyService.joinProperty(ota, propertyName.toLowerCase()));
     }
 }

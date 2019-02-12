@@ -47,7 +47,7 @@ public class ChainCodeService {
     }
 
     // TODO change return type?
-    public void instantiateChainCode(String orgName, String chaincodeName, Channel channel, String[] args) throws Exception {
+    public String instantiateChainCode(String orgName, String chaincodeName, Channel channel, String[] args) throws Exception {
         Collection<ProposalResponse> instantiationProposalResponses =
                 fabricRepository.instantiateChainCode(orgName, channel, chaincodeName, "1",
                         "overbooking", "init", args, null);//"./out/production/resources/policy.yml");
@@ -56,6 +56,8 @@ public class ChainCodeService {
             Logger.getLogger(ChainCodeService.class.getName()).log(Level.INFO,
                     "Overbooking" + "- Chain code instantiation " + res.getStatus());
         }
+
+        return "Instantiated chaincode [" + chaincodeName + "]";
     }
 
 

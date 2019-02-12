@@ -19,18 +19,25 @@ public class PropertyService {
         this.channelService = channelService;
     }
 
-    public void createProperty(String orgName, String propertyName) throws Exception {
+    public String createProperty(String orgName, String propertyName) throws Exception {
 
         // TODO add db entry?
         Channel channel = channelService.createChannel(orgName, propertyName);
         String chainCodeName = chainCodeService.installOverbookingChainCode(orgName, channel.getPeers());
-        chainCodeService.instantiateChainCode(orgName, chainCodeName,
+        return chainCodeService.instantiateChainCode(orgName, chainCodeName,
                 channel, new String[0]);
-
     }
 
-    public synchronized void joinProperty(String orgName, String propertyName) throws Exception {
-        Channel channel = channelService.joinChannel(orgName, propertyName);
-        chainCodeService.installOverbookingChainCode(orgName, channel.getPeers());
+    public synchronized String joinProperty(String orgName, String propertyName) {
+        try {
+            Channel channel = channelService.joinChannel(orgName, propertyName);
+            chainCodeService.installOverbookingChainCode(orgName, channel.getPeers());
+            return "Successfully joined channel " + propertyName;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error:" + e.getMessage();
+        }
+
+
     }
 }

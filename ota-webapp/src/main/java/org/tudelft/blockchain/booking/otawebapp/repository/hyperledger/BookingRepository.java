@@ -4,6 +4,7 @@ import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.tudelft.blockchain.booking.otawebapp.model.Response;
 import org.tudelft.blockchain.booking.otawebapp.service.FabricClientService;
 import org.tudelft.blockchain.booking.otawebapp.service.OrganizationCredentialService;
 import org.tudelft.blockchain.booking.otawebapp.service.hyperledger.ChannelService;
@@ -48,9 +49,10 @@ public class BookingRepository {
      * @return
      * @throws Exception
      */
-    public boolean isBookable(String orgName, String propertyName, String fromDate, String toDate) throws Exception {
+    public Response isBookable(String orgName, String propertyName, String fromDate, String toDate) throws Exception {
 //        User user = organizationCredentialService.getOrgAdmin(orgName);
 
+        String stringResponse = "Success";
         Channel channel = channelService.getChannel(orgName, propertyName);
         User user = organizationCredentialService.getUser(orgName);
         fabricClientService.changeContext(user);
@@ -60,14 +62,14 @@ public class BookingRepository {
         Collection<ProposalResponse> res = channel.queryByChaincode(qpr);
         // display response
         for (ProposalResponse pres : res) {
-            String stringResponse = new String(pres.getChaincodeActionResponsePayload());
+            stringResponse = pres.getMessage();
             System.out.println(stringResponse);
-            if (pres.getStatus() == ChaincodeResponse.Status.SUCCESS) {
-                return true;
+            if (pres.getStatus() != ChaincodeResponse.Status.SUCCESS) {
+                return new Response(stringResponse, Response.ResponseStatus.FAILURE);
             }
             System.out.println(stringResponse);
         }
-        return false;
+        return new Response(stringResponse, Response.ResponseStatus.SUCCESS);
     }
 
     /**
@@ -80,7 +82,7 @@ public class BookingRepository {
      * @return
      * @throws Exception
      */
-    public boolean book(String orgName, String propertyName, String fromDate, String toDate) throws Exception {
+    public Response book(String orgName, String propertyName, String fromDate, String toDate) throws Exception {
 //        User user = organizationCredentialService.getOrgAdmin(orgName);
         Channel channel = channelService.getChannel(orgName, propertyName);
         TransactionProposalRequest request = getBookTransactionProposalRequest(fromDate, toDate);
@@ -93,15 +95,15 @@ public class BookingRepository {
         // Get transaction proposal responses
         for (ProposalResponse pres : responses) {
             if (pres.getStatus() != ChaincodeResponse.Status.SUCCESS) {
-                return false;
+                return new Response(pres.getMessage(), Response.ResponseStatus.FAILURE);
             }
         }
 
         // Try to commit the transaction to the Ordering service
         CompletableFuture<BlockEvent.TransactionEvent> te = channel.sendTransaction(responses);
+        te.get();
 
-        // TODO wait for orderer response
-        return te != null;
+        return new Response("Successfully booked dates from " + fromDate + " to " + toDate, Response.ResponseStatus.SUCCESS);
     }
 
     private TransactionProposalRequest getBookTransactionProposalRequest(String fromDate, String toDate) throws InvalidArgumentException {

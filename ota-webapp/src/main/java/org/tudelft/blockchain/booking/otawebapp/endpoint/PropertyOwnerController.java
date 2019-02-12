@@ -1,5 +1,6 @@
 package org.tudelft.blockchain.booking.otawebapp.endpoint;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.tudelft.blockchain.booking.otawebapp.service.PropertyService;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -15,8 +16,8 @@ public class PropertyOwnerController {
     }
 
     @PostMapping("/property")
-    public void createProperty(@RequestParam("name") String propertyName) throws Exception {
-        propertyService.createProperty("PropertyOwner", propertyName.toLowerCase());
+    public ResponseEntity createProperty(@RequestParam("name") String propertyName) throws Exception {
+        return ResponseEntity.ok(propertyService.createProperty("PropertyOwner", propertyName.toLowerCase()));
     }
 
     @PostMapping("/invite/{otaName}")
