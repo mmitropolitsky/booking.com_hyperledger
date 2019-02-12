@@ -6,8 +6,7 @@
 
 ### TU Delft
 
-
-### February 2019
+#### February 2019
 
 * Antal Száva, 4958489
 
@@ -22,7 +21,10 @@
 
 ## Problem
 
-Our team was presented with two problems - overbookings and night-cap problem. We have decided to focus only on the overbookings issue in order to be able to understand better the business case and build a suitable prototype.
+Our team was presented with two problems - overbookings and the limited night-cap problem. We have decided to focus only on the overbookings issue in order to be able to understand better the business case and build a suitable prototype. The case has two main business requirements:
+
+* _Privacy_: only authorized parties can view and/or edit data regarding a certain property
+* _Anonymity_: the transactions on the blockchain are anonymous, i.e. no other party can see who is their issuer
 
 The overbookings problem appears when properties are listed on multiple Online Travel Agencies (OTAs), e.g. Booking.com, Airbnb, etc. When a property is booked on any OTA platform, there is no mechanism to prevent booking it again on another platform. Currently, information synchronization between OTAs is either non-effective or generally non-existent.
 
@@ -203,33 +205,33 @@ To authenticate, an organization needs to get a certificate, issued by that orga
 
 With Idemix' current implementation anonymity within the channel extends only to which member of an organization is issuing the transaction. Hiding which organization is the creator of the transaction is still not realised and currently, that part of our implementation is not possible. The initial promise of Hyperledger to have the complete Attribute based ZKP is not implemented as of the latest version 1.4, but it is in the pipeline for future releases.
 
+## Testing and verification
+Our initial testing and verification involved only manual testing using our REST API. Afterwards we added a functional test (a test, which directly calls the app's HTTP endpoints). We decided to write a functional test with all the communication and setup overhead of the full network, over an integration test, as it most resembles a real use case for our solution.
 
-## Learnings
+We were provided with a sample dataset consisting of 50 properties and 500 bookings on which we ran the functional test. 266 of the bookings were detected as overbookings. The results were verified by a simple unit test, that traversed the dataset and counted the overbookings.
 
+We have discovered that the time needed between transaction entering the ledger and consistently detecting an overbooking, is 2.5 seconds. Testing with lower time thresholds returned inconsistent numbers, due to the nature of communication between peers in the network and the time needed to disseminate information among them (i.e. gossipping).
+
+*TEST RESULTS PLEASE*
+
+The tests were performed on a single machine, running on Ubuntu 18.04 with 16GB RAM, and an 8th generation Intel Core i7 processor.
+
+## Lessons learned
 
 ### Major issues
 
+*   A Hyperledger Fabric network is hard to setup - not enough documentation and support
+*   Technology not mature - implementation limitations (e.g. Idemix)
 
+### General comments
 
-*   Hard to setup - not enough documentation and support
-*   Technology not mature - implementation limitation (e.g. Idemix)
+We have encountered the "enterprise" problem. We were either moving smoothly to the next step or very stuck. This is due to the fact that organizations, access control policies and certificate authorities are defined in configuration files. In those files there is no validation whatsoever and in case we messed up something, it took a lot of time to find what is wrong. The error was not always clear and we took the approach of trial and error until we fix the issues.
 
-
-### Simulation
-
-We have performed a simulation with a dataset containing 500 bookings, 266 out of which were overbookings. We have discovered that the time needed between transaction entering the ledger and detecting an overbooking, is 2.5 seconds. 
+Some exceptions were not very informative. However, that turned out to be a design decision on Fabric's part. They are sometimes switching log messages with generic ones in order to prevent information leaks if someone is looking through the logs. That problem was solved for us with debugging the actual SDK.
 
 The footprint for an organization is (a minimum of) 5 docker containers (min. 1 Peer, 1 Orderer, 1 CouchDB instance for storing the ledger, 1 CA node and 1 instance of the chaincode).
 
-
-### Setup
-
-We have encountered the "enterprise" problem. We were either moving smoothly to the next step or very stuck. This is due to the fact that organizations, access control policies and certificate authorities are defined in configuration files, In those files there is no validation whatsoever and in case we messed up something, it took a lot of time to find what is wrong. The error was not always clear to us and we took the approach of trial and error until we fix the issues.
-
-
 ### Various Issues and difficulties
-
-
 
 1.  In the beginning, we were with the impression that chaincode needs to be instantiated for every channel (in our case channel represents a property). This was causing the creation and start of plenty of docker containers (as many properties as we had in our tests). Then we discovered that we need the chaincode installed on every peer, instantiated once per channel by one peer and the important fact that there is only one docker container per peer (and it is used for each channel where the chaincode is instantiated).
 1.  We were using only one CouchDB instance for all peers in our network, which is conceptually wrong. There should be a separate CouchDB instance per peer.
@@ -237,79 +239,9 @@ We have encountered the "enterprise" problem. We were either moving smoothly to 
 1.  When installing the chaincode through the SDK, it required setting a manifest, needed by the CouchDB. We discovered this by trial and error again.
 
 
-## Statement
+## Conclusion
 
-Even though the technology shows great promise, it is not yet mature enough to sustain a production ready system which covers all our business requirements. Implementing such a system without a dedicated consultant would be a huge challenge.
+Even though Hyperledger Fabric shows great promise, it is not yet mature enough to sustain a production ready system which covers all our business requirements. Implementing such a system without a dedicated consultant would be a huge challenge.
 
 
 <!-- Docs to Markdown version 1.0β14 -->
-
-
-
-
-
-
-
-
-
-# Blockchain Booking
-
-## Overview
-
-For details about the business case itself, see [Problem description](docs/problem_description/problem_description.md)
-
-We chose to focus on the **Overbooking** sub-problem, at least for now. As such we mainly consider the following actors:
-* Partner
-* OTA
-
-## Hyperledger Fabric Setup
-
-1. [Install the pre-requisites](https://hyperledger-fabric.readthedocs.io/en/latest/prereqs.html)
-2. [Install the samples, binaries and Docker images](https://hyperledger-fabric.readthedocs.io/en/latest/install.html) \
-**IMPORTANT** : the docker combined docker images amount to ~16GB, the samples are ~160MB
-3. [Install the necessary SDK](https://hyperledger-fabric.readthedocs.io/en/latest/getting_started.html#hyperledger-fabric-sdks) \
-*or simply use the maven dependencies definitions in overbooking/pom.xml for the Java SDK*
-4. [Optional] [Install Hyperledger Composer](https://hyperledger.github.io/composer/latest/installing/installing-index.html) \
-*Note* : this is a development tool to facilitate the definition of **assets** ; see [Known issues](docs/knwon_issues.md) if running into issues
-
-## Hyperledger Architecture
-
-The logical components of Hyperledger Fabric are :
-* **Assets** : tangible or intangible assets being traded/modified in the application (here *rental assets*)
-* **Chaincode** : smart contracts exposing functions to operate on **assets**.
-* **Blockchain** : the immutable chain where the data is stored. In Fabric it is decomposed in two components :
-    * **State** : current state of the chain (a Key-Value Store)
-    * **Ledger** : a historical ledger of all transactions since genesis block
-* **Nodes** : the nodes involved in the different operations / management of the network
-    * **Client nodes** : nodes that invoke *transactions* on **chaincode**
-    * **Peer nodes** : nodes that maintain the **state** and **ledger**. Additionally they can *endorse* or reject 
-    *transaction-invocations* from **client nodes**.
-    * **Orderer nodes** : nodes that compose the *Ordering service* used by **clients** and **peers** to communicate.
-    This service is responsible for guaranteeing the *total-ordering* of the messages.
-
-More details about these components can be found in [Hyperledger Architecture Summary](docs/architecture/summary.md)
-
-
-### Transaction flow
-
-A summary of the Hyperledger Transaction flow is :
-1. **client** sends a *transaction proposal* to the target **chaincode**'s endorsers
-2. **endorsers** simulate the transaction and *endorse* or reject
-3. **client** collects enough *endorsements* to satisfy the **chaincode**'s *endorsement policy*
-4. *ordering service* *delivers* the endorsed transaction to all **peers** to update **state** and **ledger**
-
-See the illustration below for a visual representation of the common-case transaction flow :
-
-![Common-case transaction flow](https://hyperledger-fabric.readthedocs.io/en/latest/_images/flow-4.png)
-
-More details can be found at [Transaction Flow details](docs/transaction_flow/summary.md) and on the official documentation : 
-[Hyperledger Transaction Flow Explained](https://hyperledger-fabric.readthedocs.io/en/latest/txflow.html)
-
-## Overbooking system
-
-Our Architecture Scheme Using Hyperledger Fabric
-
-![Architecture Overview](docs/architecture/overview.jpg)
-
-See [Running the Network](docs/overbooking/running_the_network.md) to get the current implementation of this system 
-running !
