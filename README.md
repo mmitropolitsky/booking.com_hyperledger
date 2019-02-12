@@ -31,14 +31,14 @@ The overbookings problem appears when properties are listed on multiple Online T
 
 ## Solution
 
-Exploring opportunities with blockchain allows for a distributed solution which could possibly help collaboration between OTAs, without revealing actual business data.
+Exploring opportunities with blockchain allows for a distributed solution which could possibly help collaboration between OTAs, without revealing actual business data to competitors.
 
 
 ### Overview
 
-The high-level idea for the solution is quite simple. Each property, is represented by a private channel. Only OTAs that work with that property are allowed to modify data, i.e. book dates via a smart contract.
+The high-level idea for the solution is quite simple. A property owner can have many properties. Each property, is represented by a private channel. A private channel is a private "subnet" of communication between parties. Only OTAs that work with that property are allowed to modify data, i.e. book dates via a smart contract.
 
-A property owner (PO) can authorize OTAs to access this smart contract in order to check dates availability and perform bookings. The bookings are represented by transactions on the blockchain. Such authorization must also be revocable. No party outside that private channel (e.g. an OTA that does not work with that property and its owner) has any access to view or edit the data. All members of this channel should be able to query dates availability by reading the distributed ledger.
+A Property Owner can authorize OTAs to access this smart contract in order to check dates availability and perform bookings. The bookings are represented by transactions on the blockchain. Such authorization must also be revocable. For example, when a Property Owner no longer wishes to work with an OTA he should be able to revoke access of that OTA to the private channel of his property. No party outside that private channel (e.g. an OTA that does not work with that property and its owner) has any access to view or edit the data. All members of this channel should be able to query dates availability by reading the distributed ledger.
 
 However, the issuer of the transaction, i.e. an OTA booking a date, does not want to share their identity with the other members of the channel. The only information that should be shared is the dates themselves. The reason being that it could leak business information to competitors about the number of bookings an OTA has. One solution to this issue is the Zero-Knowledge Proof (ZKP). In short, this allows a party to prove that they possess certain knowledge or permissions, without actually revealing these permissions or any sensitive information. Here, an OTA would provide a ZKP that it is one of the companies authorized to manage a certain property, without explicitly revealing their identity. 
 
