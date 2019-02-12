@@ -218,10 +218,10 @@ The tests were performed on a single machine, running on Ubuntu 18.04 with 16GB 
 
 ## Lessons learned
 
-### Major issues
+### Major issues with Hyperledger Fabric
 
 *   A Hyperledger Fabric network is hard to setup - not enough documentation and support
-*   Technology not mature - implementation limitations (e.g. Idemix)
+*   Fabric not mature - implementation limitations (e.g. Idemix)
 
 ### General comments
 
@@ -236,12 +236,11 @@ The footprint for an organization is (a minimum of) 5 docker containers (min. 1 
 1.  In the beginning, we were with the impression that chaincode needs to be instantiated for every channel (in our case channel represents a property). This was causing the creation and start of plenty of docker containers (as many properties as we had in our tests). Then we discovered that we need the chaincode installed on every peer, instantiated once per channel by one peer and the important fact that there is only one docker container per peer (and it is used for each channel where the chaincode is instantiated).
 1.  We were using only one CouchDB instance for all peers in our network, which is conceptually wrong. There should be a separate CouchDB instance per peer.
 1.  The hyperledger SDK is lacking proper documentation. There is only one end to end test which was our main source of information.
-1.  When installing the chaincode through the SDK, it required setting a manifest, needed by the CouchDB. We discovered this by trial and error again.
-
+1.  When installing the chaincode through the SDK, it required setting a manifest file, needed by the CouchDB. Since there were very few examples, it took quite some time to actually find out the needed content of the file. We discovered this again by trial and error. 
 
 ## Conclusion
 
-Even though Hyperledger Fabric shows great promise, it is not yet mature enough to sustain a production ready system which covers all our business requirements. Implementing such a system without a dedicated consultant would be a huge challenge.
+Issues such as cumbersome setup of a Fabric network, scarce documentation and simplistic examples lead to development mainly driven by trial and error. Implementing such a system without a dedicated consultant would be a huge challenge. Functionalities, which have not yet been fully implemented stand in the way of fully utilizing the technology's potential. Even though Hyperledger Fabric shows great promise, it is not yet mature enough to sustain a production ready system which covers all our business requirements.
 
 
 <!-- Docs to Markdown version 1.0β14 -->
