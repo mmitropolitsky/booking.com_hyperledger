@@ -20,8 +20,4 @@ public class PropertyOwnerController {
         return ResponseEntity.ok(propertyService.createProperty("PropertyOwner", propertyName.toLowerCase()));
     }
 
-    @PostMapping("/invite/{otaName}")
-    public void inviteOta(@PathVariable("otaName") String otaName) {
-        throw new NotImplementedException();
-    }
 }

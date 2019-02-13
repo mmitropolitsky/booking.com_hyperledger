@@ -5,6 +5,7 @@ import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.expression.AccessException;
 import org.springframework.stereotype.Service;
 import org.tudelft.blockchain.booking.otawebapp.service.FabricClientService;
 import org.tudelft.blockchain.booking.otawebapp.service.OrganizationCredentialService;
@@ -73,25 +74,35 @@ public class ChannelService {
     }
 
     public Channel joinChannel(String orgName, String channelName) throws Exception {
-        return joinChannel(orgName, getChannel(orgName, channelName));
+        User admin = organizationCredentialService.getOrgAdmin(orgName);
+        fabricClientService.changeContext(admin);
+        HFClient client = fabricClientService.getClient();
+        Channel channel = client.newChannel(channelName);
+        return joinChannel(orgName, channel);
     }
 
     public Channel getChannel(String orgName, String channelName) throws Exception {
         User admin = organizationCredentialService.getOrgAdmin(orgName);
         fabricClientService.changeContext(admin);
         HFClient client = fabricClientService.getClient();
-        Channel channel = client.getChannel(channelName);
-        if (channel == null) {
-            channel = client.newChannel(channelName);
-        }
-
-        addOrdererAndEventHubToChannel(client, orgName, channel);
-
         Peer peer = client.newPeer(orgStringBuilder.getPeerName(orgName, 0), orgStringBuilder.getPeerUrl(orgName));
-        channel.addPeer(peer);
 
-        channel.initialize();
-        return channel;
+
+        if (client.queryChannels(peer).contains(channelName)) {
+            Channel channel = client.getChannel(channelName);
+            if (channel == null) {
+                channel = client.newChannel(channelName);
+            }
+            channel.addPeer(peer);
+
+
+            addOrdererAndEventHubToChannel(client, orgName, channel);
+
+            channel.initialize();
+            return channel;
+        } else {
+            throw new AccessException("Organization [" + orgName + "] does not have access to channel [" + channelName + "]");
+        }
     }
 
     private ChannelConfiguration createChannelConfiguration(String channelName) throws Exception {
