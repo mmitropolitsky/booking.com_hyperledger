@@ -46,7 +46,6 @@ public class ChainCodeService {
         return CHAINCODE_NAME;
     }
 
-    // TODO change return type?
     public String instantiateChainCode(String orgName, String chaincodeName, Channel channel, String[] args) throws Exception {
         Collection<ProposalResponse> instantiationProposalResponses =
                 fabricRepository.instantiateChainCode(orgName, channel, chaincodeName, "1",

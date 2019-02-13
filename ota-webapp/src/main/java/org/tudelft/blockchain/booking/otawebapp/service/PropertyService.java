@@ -21,7 +21,6 @@ public class PropertyService {
 
     public String createProperty(String orgName, String propertyName) throws Exception {
 
-        // TODO add db entry?
         Channel channel = channelService.createChannel(orgName, propertyName);
         String chainCodeName = chainCodeService.installOverbookingChainCode(orgName, channel.getPeers());
         return chainCodeService.instantiateChainCode(orgName, chainCodeName,

@@ -141,6 +141,7 @@ public class BookingRepository {
         qpr.setChaincodeID(overbookingCCID);
         qpr.setFcn(method);
         qpr.setArgs(fromDate, toDate);
+        qpr.setProposalWaitTime(PROPOSAL_WAIT_TIME);
         return qpr;
     }
 
