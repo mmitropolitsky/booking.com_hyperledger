@@ -1,10 +1,6 @@
 package org.tudelft.blockchain.booking.otawebapp.model;
 
 import lombok.*;
-import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.DateAvailabilityPair;
-
-import java.util.Collection;
-import java.util.HashSet;
 
 @Data
 @RequiredArgsConstructor
@@ -17,9 +13,4 @@ public class Property {
     private String address;
     @NonNull
     private String description;
-
-    @EqualsAndHashCode.Exclude
-    private Collection<DateAvailabilityPair> availableIntervals = new HashSet<>();
-
-
 }

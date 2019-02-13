@@ -23,22 +23,22 @@ public class OverbookingChainCode extends ChaincodeBase {
 
     @Override
     public Response init(ChaincodeStub stub) {
-            logger.debug("Initiating " + this.getClass().getCanonicalName());
+        logger.debug("Initiating " + this.getClass().getCanonicalName());
 
-            String function = stub.getFunction();
+        String function = stub.getFunction();
 
-            if (!initFunction.equals(function))
-                return newErrorResponse("function other than init is not supported");
+        if (!initFunction.equals(function))
+            return newErrorResponse("function other than init is not supported");
 
-            List<String> args = stub.getParameters();
+        List<String> args = stub.getParameters();
 
-            if (args.size() != 0 && args.size() != 2) {
-                return newErrorResponse("Incorrect number of arguments." +
-                        " Expecting 0 by default (or 2 for specifying a booking range). " +
-                        "Stub parameters for function [" + stub.getFunction() + "] with size " +
-                        "[" + stub.getParameters().size() + "]: [" + stub.getParameters() + "]");
-            }
-            return initializeDates(stub, args);
+        if (args.size() != 0 && args.size() != 2) {
+            return newErrorResponse("Incorrect number of arguments." +
+                    " Expecting 0 by default (or 2 for specifying a booking range). " +
+                    "Stub parameters for function [" + stub.getFunction() + "] with size " +
+                    "[" + stub.getParameters().size() + "]: [" + stub.getParameters() + "]");
+        }
+        return initializeDates(stub, args);
     }
 
     /**
@@ -121,7 +121,6 @@ public class OverbookingChainCode extends ChaincodeBase {
 
     //Retrieve information about overall availability
     private boolean isBookable(ChaincodeStub stub, List<LocalDate> params) {
-
         QueryResultsIterator<KeyValue> currentInterval = stub.getStateByRange(params.get(0).toString(), params.get(1).toString());
         for (KeyValue currentDate : currentInterval) {
             if (currentDate.getStringValue().equals(DateStatus.BOOKED.toString())) {
@@ -132,13 +131,14 @@ public class OverbookingChainCode extends ChaincodeBase {
     }
 
     /* Initialize the dates according to the call by the init function
-    *
-    * */
+     *
+     * */
     private Response initializeDates(ChaincodeStub stub, List<String> arguments) {
 
         // If no time range specified add the next 500 days to the store
         if (arguments.size() == 0) {
-            addDatesWithAvailability(stub, Arrays.asList(LocalDate.now(), LocalDate.now().plusDays(500)), DateStatus.AVAILABLE.toString());
+            LocalDate initDate = LocalDate.now();
+            addDatesWithAvailability(stub, Arrays.asList(initDate, initDate.plusDays(500)), DateStatus.AVAILABLE.toString());
             return newSuccessResponse("Congratulations! Successfully initialized the next 500 days as available!");
         } else {
 
@@ -148,7 +148,7 @@ public class OverbookingChainCode extends ChaincodeBase {
                         LocalDate.parse(arguments.get(1)));
                 addDatesWithAvailability(stub, validatedParams, DateStatus.AVAILABLE.toString());
                 return newSuccessResponse("Congratulations! Successfully updated the status as available for the time period of: "
-                                            + validatedParams.get(0) + " and " + validatedParams.get(1) + ".");
+                        + validatedParams.get(0) + " and " + validatedParams.get(1) + ".");
             } else {
                 return validationResponse;
             }
@@ -166,10 +166,9 @@ public class OverbookingChainCode extends ChaincodeBase {
     private void addDatesWithAvailability(ChaincodeStub stub, List<LocalDate> params, String isBooked) {
 
         LocalDate startDate = params.get(0);
-        LocalDate endDate = params.get(1);
+        LocalDate endDate = params.get(1).minusDays(1);
 
         while (!startDate.isAfter(endDate)) {
-
             stub.putStringState(startDate.toString(), isBooked);
             startDate = startDate.plusDays(1);
         }

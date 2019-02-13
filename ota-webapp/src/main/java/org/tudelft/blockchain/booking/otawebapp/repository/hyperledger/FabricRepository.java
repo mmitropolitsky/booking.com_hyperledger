@@ -3,14 +3,11 @@ package org.tudelft.blockchain.booking.otawebapp.repository.hyperledger;
 import org.hyperledger.fabric.sdk.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.tudelft.blockchain.booking.otawebapp.model.hyperledger.HFUser;
-import org.tudelft.blockchain.booking.otawebapp.service.ChannelConfigurationService;
-import org.tudelft.blockchain.booking.otawebapp.service.CredentialService;
-import org.tudelft.blockchain.booking.otawebapp.service.NetworkService;
+import org.tudelft.blockchain.booking.otawebapp.service.FabricClientService;
+import org.tudelft.blockchain.booking.otawebapp.service.OrganizationCredentialService;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -18,45 +15,26 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.hyperledger.fabric.sdk.Channel.PeerOptions.createPeerOptions;
 
 @Component
 public class FabricRepository {
 
-    @Autowired
-    NetworkService networkService;
+    private final FabricClientService fabricClientService;
+
+    private final OrganizationCredentialService organizationCredentialService;
 
     @Autowired
-    ChannelConfigurationService channelConfigurationService;
-
-    public Channel createChannel(HFUser admin, String peerName, String peerUrl, String eventHubName, String eventHubUrl,
-                                 String ordererName, String ordererUrl, String channelName) throws Exception {
-        try {
-            networkService.changeToOrgAdminContext();
-            HFClient client = networkService.getClient();
-
-            Peer peer = client.newPeer(peerName, peerUrl);
-            EventHub eventHub = client.newEventHub(eventHubName, eventHubUrl);
-            Orderer orderer = client.newOrderer(ordererName, ordererUrl);
-            ChannelConfiguration channelConfiguration = channelConfigurationService.createChannelConfiguration(channelName);
-            Channel newChannel = client.newChannel(channelName, orderer, channelConfiguration, client.getChannelConfigurationSignature(channelConfiguration, admin));
-            newChannel.addEventHub(eventHub);
-            newChannel.addOrderer(orderer);
-            newChannel.joinPeer(peer, createPeerOptions().setPeerRoles(EnumSet.of(Peer.PeerRole.ENDORSING_PEER, Peer.PeerRole.LEDGER_QUERY, Peer.PeerRole.CHAINCODE_QUERY, Peer.PeerRole.EVENT_SOURCE))); //Default is all roles.
-            newChannel.initialize();
-            networkService.changeToUserContext();
-
-            return newChannel;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
+    public FabricRepository(FabricClientService fabricClientService, OrganizationCredentialService organizationCredentialService) {
+        this.fabricClientService = fabricClientService;
+        this.organizationCredentialService = organizationCredentialService;
     }
 
-    public Collection<ProposalResponse> deployChainCode(String chainCodeName, String codepath, String version, Collection<Peer> peers)
+
+    public Collection<ProposalResponse> deployChainCode(String orgName, String chainCodeName, String codepath, String version, Collection<Peer> peers)
             throws Exception {
-        networkService.changeToOrgAdminContext();
-        HFClient client = networkService.getClient();
+        User admin = organizationCredentialService.getOrgAdmin(orgName);
+        fabricClientService.changeContext(admin);
+        HFClient client = fabricClientService.getClient();
 
         ChaincodeID.Builder chaincodeIDBuilder = ChaincodeID.newBuilder().setName(chainCodeName).setVersion(version);
         ChaincodeID chaincodeID = chaincodeIDBuilder.build();
@@ -75,17 +53,16 @@ public class FabricRepository {
         request.setChaincodeMetaInfLocation(new File(codepath + File.separator + "manifests"));
         request.setChaincodeVersion(version);
 
-        Collection<ProposalResponse> responses = client.sendInstallProposal(request, peers);
-        networkService.changeToUserContext();
-        return responses;
+        return client.sendInstallProposal(request, peers);
     }
 
-    public Collection<ProposalResponse> instantiateChainCode(Channel channel, String chaincodeName, String version, String chaincodePath,
+    public Collection<ProposalResponse> instantiateChainCode(String orgName, Channel channel, String chaincodeName, String version, String chaincodePath,
                                                              String functionName, String[] functionArgs, String policyPath)
             throws Exception {
 
-        networkService.changeToOrgAdminContext();
-        HFClient client = networkService.getClient();
+        User admin = organizationCredentialService.getOrgAdmin(orgName);
+        fabricClientService.changeContext(admin);
+        HFClient client = fabricClientService.getClient();
 
 
         Logger.getLogger(FabricRepository.class.getName()).log(Level.INFO,
@@ -120,22 +97,13 @@ public class FabricRepository {
 
         Collection<ProposalResponse> responses = channel.sendInstantiationProposal(instantiateProposalRequest);
         CompletableFuture<BlockEvent.TransactionEvent> cf = channel.sendTransaction(responses);
-        networkService.changeToUserContext();
 
-        cf.get();
+//        cf.get();
 
         Logger.getLogger(FabricRepository.class.getName()).log(Level.INFO,
                 "Chaincode " + chaincodeName + " on channel " + channel.getName() + " instantiation " + cf);
 
         return responses;
-    }
-
-    public Collection<Peer> getPeers() {
-        return networkService.getPeers();
-    }
-
-    public Channel getChannel() {
-        return networkService.getChannel();
     }
 
 }
