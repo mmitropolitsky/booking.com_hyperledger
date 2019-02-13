@@ -8,6 +8,7 @@ public class Booking {
     private String propertyName;
     private LocalDate startDate;
     private LocalDate endDate;
+    private String status;
 
     public long getId() {
         return id;
@@ -49,6 +50,14 @@ public class Booking {
         this.endDate = endDate;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public boolean overbookingAttempt(Booking booking) {
         boolean a  = (booking.getStartDate().isAfter(this.getStartDate()) || booking.getStartDate().isEqual(this.getStartDate()))
                 && booking.getStartDate().isBefore(this.getEndDate());
@@ -65,6 +74,7 @@ public class Booking {
                 ", propertyName='" + propertyName + '\'' +
                 ", startDate=" + startDate +
                 ", endDate=" + endDate +
+                ", status='" + status + '\'' +
                 '}';
     }
 }

@@ -13,49 +13,16 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 
 public class OverbookingsTest {
 
-    static List<Booking> bookings = new ArrayList<>();
-    static int overbookingsCounter = 0;
+    protected static List<Booking> bookings = new ArrayList<>();
+    private static int overbookingsCounter = 0;
+    private static List<Booking> overbookings = new ArrayList<>();
 
-    @BeforeClass
-    public static void loadData() {
-        readCsv();
-    }
-
-    private static void readCsv() {
-        String csvFile = "bookings_500_per_50_filter.csv";
-        String line = "";
-        String cvsSplitBy = ";";
-
-        ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-        InputStream is = classloader.getResourceAsStream(csvFile);
-        InputStreamReader streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
-
-        try (BufferedReader br = new BufferedReader(streamReader)) {
-            br.readLine();
-            while ((line = br.readLine()) != null) {
-
-                // use comma as separator
-                String[] bookingArray = line.split(cvsSplitBy);
-                Booking booking = new Booking();
-                booking.setId(Long.parseLong(bookingArray[0]));
-                booking.setOtaName("Ota" + bookingArray[1]);
-                booking.setPropertyName(bookingArray[2].replaceAll("_", ""));
-                booking.setStartDate(LocalDate.parse(bookingArray[3]));
-                booking.setEndDate(LocalDate.parse(bookingArray[4]));
-                bookings.add(booking);
-                System.out.println(booking);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     @Test
     public void bookingsCheckFullOverbooking() {
@@ -130,6 +97,7 @@ public class OverbookingsTest {
                                 isOverbookingAttempt = true;
                                 counter++;
                                 overbookingsCounter++;
+                                overbookings.add(notProcessed.get(i));
                                 break;
                             }
                         }
@@ -144,5 +112,6 @@ public class OverbookingsTest {
         );
 
         System.out.println("Encountered overbookings: " + overbookingsCounter);
+        System.out.println("Overbookings' ids: " + overbookings.stream().map(Booking::getId).sorted().collect(Collectors.toList()));
     }
 }
