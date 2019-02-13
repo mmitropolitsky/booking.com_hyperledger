@@ -10,6 +10,23 @@ networks:
 
 services:
 
+  ca.ota-b.tudelft.org:
+    image: hyperledger/fabric-ca
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.ota-b.tudelft.org
+      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.ota-b.tudelft.org-cert.pem
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/ota_b_sk
+      - FABRIC_LOGGING_SPEC=debug
+    ports:
+      - "9054:7054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw'
+    volumes:
+      - ./crypto-config/peerOrganizations/ota-b.tudelft.org/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca.ota-b.tudelft.org
+    networks:
+      - basic
+
   peer0.ota-b.tudelft.org:
     container_name: peer0.ota-b.tudelft.org
     image: hyperledger/fabric-peer
