@@ -57,8 +57,8 @@ public class OverbookingChainCodeTest {
     @Test
     public void testIncorrectNumberOfArgumentsInitFunction2() {
         when(chaincodeStub.getFunction()).thenReturn("init");
-        when(chaincodeStub.getParameters()).thenReturn(Arrays.asList("more","than","two","strings",
-                "as","parameter"));
+        when(chaincodeStub.getParameters()).thenReturn(Arrays.asList("more", "than", "two", "strings",
+                "as", "parameter"));
 
         Response response = overbookingChainCode.init(chaincodeStub);
         assertThat(response.getMessage(),
@@ -77,7 +77,7 @@ public class OverbookingChainCodeTest {
     @Test
     public void testArgumentsWithIncorrectFormatInitFunction2() {
         when(chaincodeStub.getFunction()).thenReturn("init");
-        when(chaincodeStub.getParameters()).thenReturn(Arrays.asList("2020-31-03","2020-31-03"));
+        when(chaincodeStub.getParameters()).thenReturn(Arrays.asList("2020-31-03", "2020-31-03"));
 
         Response response = overbookingChainCode.init(chaincodeStub);
         assertEquals(response.getMessage(), "Please specify valid dates of the following format: YYYY-MM-DD");
@@ -86,7 +86,7 @@ public class OverbookingChainCodeTest {
     @Test
     public void testArgumentsWithInvalidDateInitFunction() {
         when(chaincodeStub.getFunction()).thenReturn("init");
-        when(chaincodeStub.getParameters()).thenReturn(Arrays.asList("2020-02-30","2020-03-03"));
+        when(chaincodeStub.getParameters()).thenReturn(Arrays.asList("2020-02-30", "2020-03-03"));
 
         Response response = overbookingChainCode.init(chaincodeStub);
         assertEquals(response.getMessage(), "Please specify valid dates of the following format: YYYY-MM-DD");
@@ -110,7 +110,6 @@ public class OverbookingChainCodeTest {
         inOrder.verify(chaincodeStub).getFunction();
         inOrder.verify(chaincodeStub).getParameters();
         inOrder.verify(chaincodeStub).putStringState(startDate, available);
-        inOrder.verify(chaincodeStub).putStringState(endDate, available);
 
         inOrder.verifyNoMoreInteractions();
 
@@ -133,8 +132,10 @@ public class OverbookingChainCodeTest {
 
         inOrder.verify(chaincodeStub).getFunction();
         inOrder.verify(chaincodeStub).getParameters();
-        inOrder.verify(chaincodeStub).putStringState(startDate,availability);
-        inOrder.verify(chaincodeStub).putStringState(endDate,availability);
+        inOrder.verify(chaincodeStub).putStringState(startDate, availability);
+        //last date of the interval must be excluded as it is not being booked
+        //for example if we have a booking from 05.12 to 07.12 the actual booked dates are 05.12 and 06.12
+        inOrder.verify(chaincodeStub).putStringState(LocalDate.parse(endDate).minusDays(1).toString(), availability);
 
         inOrder.verifyNoMoreInteractions();
 
@@ -145,6 +146,7 @@ public class OverbookingChainCodeTest {
 
         String startDate = LocalDate.now().toString();
         String endDate = LocalDate.now().plusDays(500).toString();
+
         String availability = DateStatus.AVAILABLE.toString();
 
         when(chaincodeStub.getFunction()).thenReturn("init");
@@ -157,8 +159,10 @@ public class OverbookingChainCodeTest {
 
         inOrder.verify(chaincodeStub).getFunction();
         inOrder.verify(chaincodeStub).getParameters();
-        inOrder.verify(chaincodeStub).putStringState(startDate,availability);
-        inOrder.verify(chaincodeStub).putStringState(endDate,availability);
+        inOrder.verify(chaincodeStub).putStringState(startDate, availability);
+        //last date of the interval must be excluded as it is not being booked
+        //for example if we have a booking from 05.12 to 07.12 the actual booked dates are 05.12 and 06.12
+        inOrder.verify(chaincodeStub).putStringState(LocalDate.parse(endDate).minusDays(1).toString(), availability);
 
         inOrder.verifyNoMoreInteractions();
 
@@ -199,7 +203,7 @@ public class OverbookingChainCodeTest {
 
         // Mocking these date parameters
         List<KeyValue> dates = generateMockKeyValueDateWithAvailabilityByInterval(LocalDate.parse(datesParam.get(0)),
-                LocalDate.parse(datesParam.get(1)),"1");
+                LocalDate.parse(datesParam.get(1)), "1");
 
         when(chaincodeStub.getFunction()).thenReturn("book");
         when(chaincodeStub.getParameters()).thenReturn(datesParam);
@@ -224,12 +228,13 @@ public class OverbookingChainCodeTest {
         //when(chaincodeStub.getStateByRange(endDate, startDate)).thenReturn(QueryResultsIterator<KeyValue>);
 
         KeyValue mockedDate = mock(KeyValue.class);
-        when(mockedDate.getKey()).thenReturn(startDate.toString());
+        when(mockedDate.getKey()).thenReturn(startDate);
         when(mockedDate.getStringValue()).thenReturn(DateStatus.BOOKED.toString());
 
         Response response = overbookingChainCode.invoke(chaincodeStub);
         assertEquals(response.getMessage(), "Please specify an end date after the start date!");
     }
+
     @Test
     public void testIsNotBookable() {
 
@@ -238,7 +243,7 @@ public class OverbookingChainCodeTest {
 
         // Mocking these date parameters with a booked status
         List<KeyValue> dates = generateMockKeyValueDateWithAvailabilityByInterval(
-                LocalDate.parse(datesParam.get(0)), LocalDate.parse(datesParam.get(1)),DateStatus.BOOKED.toString());
+                LocalDate.parse(datesParam.get(0)), LocalDate.parse(datesParam.get(1)), DateStatus.BOOKED.toString());
 
         when(chaincodeStub.getFunction()).thenReturn("isBookable");
         when(chaincodeStub.getParameters()).thenReturn(datesParam);
@@ -246,7 +251,7 @@ public class OverbookingChainCodeTest {
         QueryResultsIterator<KeyValue> current = mock(QueryResultsIterator.class);
         when(current.iterator()).thenReturn(dates.iterator());
 
-        when(chaincodeStub.getStateByRange(datesParam.get(0), "2019-07-03")).thenReturn(current);
+        when(chaincodeStub.getStateByRange(datesParam.get(0), "2019-07-04")).thenReturn(current);
 
         //when(overbookingChainCode.isBookable(chaincodeStub, someMockDate, someMockDate)).thenReturn(false);
         Response response = overbookingChainCode.invoke(chaincodeStub);
