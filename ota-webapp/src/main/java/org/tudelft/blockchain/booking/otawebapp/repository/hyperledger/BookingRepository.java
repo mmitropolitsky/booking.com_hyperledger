@@ -50,11 +50,11 @@ public class BookingRepository {
      * @throws Exception
      */
     public Response isBookable(String orgName, String propertyName, String fromDate, String toDate) throws Exception {
-//        User user = organizationCredentialService.getOrgAdmin(orgName);
+        User user = organizationCredentialService.getOrgAdmin(orgName);
 
         String stringResponse = "Success";
         Channel channel = channelService.getChannel(orgName, propertyName);
-        User user = organizationCredentialService.getUser(orgName);
+//        User user = organizationCredentialService.getUser(orgName);
         fabricClientService.changeContext(user);
 
         QueryByChaincodeRequest qpr = getQueryByChaincodeRequest(fromDate, toDate, IS_BOOKABLE_FUNCTION_NAME);
@@ -83,10 +83,10 @@ public class BookingRepository {
      * @throws Exception
      */
     public Response book(String orgName, String propertyName, String fromDate, String toDate) throws Exception {
-//        User user = organizationCredentialService.getOrgAdmin(orgName);
+        User user = organizationCredentialService.getOrgAdmin(orgName);
         Channel channel = channelService.getChannel(orgName, propertyName);
         TransactionProposalRequest request = getBookTransactionProposalRequest(fromDate, toDate);
-        User user = organizationCredentialService.getUser(orgName);
+//        User user = organizationCredentialService.getUser(orgName);
         fabricClientService.changeContext(user);
 
 
@@ -101,7 +101,10 @@ public class BookingRepository {
 
         // Try to commit the transaction to the Ordering service
         CompletableFuture<BlockEvent.TransactionEvent> te = channel.sendTransaction(responses);
-        te.get();
+
+        if (te == null) {
+            return new Response("Failure while booking the dates [" + fromDate + ", " + toDate + "].", Response.ResponseStatus.FAILURE);
+        }
 
         return new Response("Successfully booked dates from " + fromDate + " to " + toDate, Response.ResponseStatus.SUCCESS);
     }

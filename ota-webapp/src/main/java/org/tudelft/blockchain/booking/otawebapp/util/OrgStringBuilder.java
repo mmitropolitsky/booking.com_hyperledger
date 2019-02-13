@@ -30,6 +30,18 @@ public class OrgStringBuilder {
     @Value("${org.tudelft.blockchain.booking.ota.b.eventhub.port}")
     private int eventHubPortOtaB;
 
+    /**
+     * CA URLs
+     */
+    @Value("${org.tudelft.blockchain.booking.po.ca.port}")
+    private int caPortPropertyOwner;
+
+    @Value("${org.tudelft.blockchain.booking.ota.a.ca.port}")
+    private int caPortOtaA;
+
+    @Value("${org.tudelft.blockchain.booking.ota.b.ca.port}")
+    private int caPortOtaB;
+
 
     public String getDomainName(String orgName) {
         // turn OtaA to ota-a.tudelft.org
@@ -90,9 +102,19 @@ public class OrgStringBuilder {
     }
 
     public String getCaUrl(String orgName) {
-        int port = 7054;
-        if ("OtaA".equals(orgName)) {
-            port = 8054;
+        int port;
+        switch (orgName) {
+            case "OtaA":
+                port = caPortOtaA;
+                break;
+            case "OtaB":
+                port = caPortOtaB;
+                break;
+            case "PropertyOwner":
+            default:
+                port = caPortPropertyOwner;
+                break;
+
         }
         return "http://localhost:" + port;
     }
