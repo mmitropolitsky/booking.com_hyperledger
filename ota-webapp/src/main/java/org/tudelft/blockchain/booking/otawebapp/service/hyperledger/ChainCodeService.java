@@ -19,6 +19,7 @@ public class ChainCodeService {
 
     private final FabricRepository fabricRepository;
     public static String CHAINCODE_NAME = "overbooking";
+    public static String CHAINCODE_VERSION = "1.0";
     private static Map<String, Boolean> peersInstalledChaincode = new HashMap<>();
 
     @Value("${org.tudelft.blockchain.booking.chaincode.path}")
@@ -48,7 +49,7 @@ public class ChainCodeService {
 
     public String instantiateChainCode(String orgName, String chaincodeName, Channel channel, String[] args) throws Exception {
         Collection<ProposalResponse> instantiationProposalResponses =
-                fabricRepository.instantiateChainCode(orgName, channel, chaincodeName, "1",
+                fabricRepository.instantiateChainCode(orgName, channel, chaincodeName, CHAINCODE_VERSION,
                         "overbooking", "init", args, null);//"./out/production/resources/policy.yml");
 
         for (ProposalResponse res : instantiationProposalResponses) {

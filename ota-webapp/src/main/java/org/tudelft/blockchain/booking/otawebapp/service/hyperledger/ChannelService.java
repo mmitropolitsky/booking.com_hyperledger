@@ -77,7 +77,10 @@ public class ChannelService {
         User admin = organizationCredentialService.getOrgAdmin(orgName);
         fabricClientService.changeContext(admin);
         HFClient client = fabricClientService.getClient();
-        Channel channel = client.newChannel(channelName);
+        Channel channel = client.getChannel(channelName);
+        if (channel == null) {
+            channel = client.newChannel(channelName);
+        }
         return joinChannel(orgName, channel);
     }
 
