@@ -41,7 +41,6 @@ public class BookingScenarioEndToEnd {
     public void AcreateProperties() {
         List<String> properties = bookings.stream().map(Booking::getPropertyName).distinct()
                 .collect(Collectors.toList());
-        properties.remove("property0");
         properties.forEach(p -> {
                     try {
                         mvc.perform(post("/api/po/property").param("name", p)).andExpect(status().isOk());
@@ -66,7 +65,6 @@ public class BookingScenarioEndToEnd {
     private void joinProperty(String orgName) throws Exception {
         List<String> otaProperties = bookings.stream().filter(b -> b.getOtaName().equals(orgName)).map(Booking::getPropertyName).distinct()
                 .collect(Collectors.toList());
-        otaProperties.remove("property0");
         otaProperties.forEach(p -> {
                     try {
                         System.out.println("Org [" + orgName + "] joining property [" + p + "]");
