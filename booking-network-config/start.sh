@@ -39,7 +39,7 @@ docker exec -e "CORE_PEER_LOCALMSPID=OtaBMSP" -e "CORE_PEER_MSPCONFIGPATH=/etc/h
 docker exec -e "CORE_PEER_LOCALMSPID=OtaBMSP" -e "CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@ota-b.tudelft.org/msp" peer0.ota-b.tudelft.org peer channel join -b mychannel.block
 
 
-Update the channel definition to define the anchor peer for Org1 as peer0.property-owner.tudelft.org
+# Update the channel definition to define the anchor peer for Org1 as peer0.property-owner.tudelft.org
 docker exec -e "CORE_PEER_LOCALMSPID=PropertyOwnerMSP" -e "CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@property-owner.tudelft.org/msp" peer0.property-owner.tudelft.org peer channel update -o orderer.example.com:7050 -c mychannel -f /etc/hyperledger/configtx/PropertyOwnerMSPanchors.tx
 
 # Update the channel definition to define the anchor peer for Org1 as peer0.ota-a.tudelft.org

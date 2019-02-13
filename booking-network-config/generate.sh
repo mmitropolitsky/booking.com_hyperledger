@@ -12,6 +12,8 @@ CHANNEL_NAME=mychannel
 rm -fr config/*
 rm -fr crypto-config/*
 
+mkdir config
+
 # generate crypto material
 cryptogen generate --config=./crypto-config.yaml
 if [ "$?" -ne 0 ]; then
