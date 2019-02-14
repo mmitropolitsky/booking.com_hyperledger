@@ -104,7 +104,7 @@ public class ChannelService {
             channel.initialize();
             return channel;
         } else {
-            throw new AccessException("Organization [" + orgName + "] does not have access to channel [" + channelName + "]");
+            throw new AccessException("Organization [" + orgName + "] does not have access to property [" + channelName + "]");
         }
     }
 

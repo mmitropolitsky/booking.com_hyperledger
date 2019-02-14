@@ -31,7 +31,7 @@ public class PropertyService {
         try {
             Channel channel = channelService.joinChannel(orgName, propertyName);
             chainCodeService.installOverbookingChainCode(orgName, channel.getPeers());
-            return "Successfully joined channel " + propertyName;
+            return "Successfully joined property " + propertyName;
         } catch (Exception e) {
             e.printStackTrace();
             return "Error:" + e.getMessage();

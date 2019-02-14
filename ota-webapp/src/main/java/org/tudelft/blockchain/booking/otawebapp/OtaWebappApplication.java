@@ -21,7 +21,7 @@ public class OtaWebappApplication {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.any())
+                .apis(RequestHandlerSelectors.basePackage("org.tudelft.blockchain.booking.otawebapp.endpoint"))
                 .paths(PathSelectors.any())
                 .build();
     }
