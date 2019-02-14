@@ -140,7 +140,7 @@ Assume an existing network having members for each OTA and a Property Owner. For
 
 
 
-![Architecture Overview](docs/architecture/Architecture_overview.jpg)
+![Architecture Overview](docs/architecture/New_architecture_overview.jpg)
 
 
 _Figure 1: Architecture overview_
