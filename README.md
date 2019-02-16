@@ -350,6 +350,7 @@ The footprint for an organization is (a minimum of) 5 Docker containers (min. 1 
 3. The hyperledger SDK is lacking proper documentation. There is only one end to end test which was our main source of information.
 4. When installing the chaincode through the SDK, it required setting a manifest file, needed by the CouchDB. Since there were very few examples, it took quite some time to actually find out the needed content of the file. We discovered this again by trial and error.
 5. We have sent two bookings for the same property one after another (the second of which is an overbooking attempt) with a difference of less than 1s. In this case, the overbooking was not detected and the transaction was added to the ledger. In the logs, we discovered that a PHANTOM_READ error appeared on the peers and the transaction was marked as invalid by them. Nevertheless, the ordering service broadcasted it and it was appended to the chain.
+6. Communication with the dev team was possible but challenging. Their [Rocket chat](https://chat.hyperledger.org/), especially the _fabric-ca_ was flooded with irrelevant and obvious questions. However, we still managed to get in touch with some people form their team, e.g. about [Idemix enrollment](https://chat.hyperledger.org/channel/fabric-ca?msg=BFSHJkzaX6N5Hg29n) or a [Java SDK discuusion](https://chat.hyperledger.org/channel/fabric-sdk-java?msg=Sw6uBDX6QtGX3iArW).
 
 ### **Conclusion**
 
