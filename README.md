@@ -214,7 +214,7 @@ For this scenario, we assume a running Hyperledger Fabric network. Every organiz
 ![API UI with Swagger](docs/architecture/swagger.png)
 _Figure 4 API UI with Swagger_
 
-When a Property Owner registers his property by using [the REST API](ota-webapp/src/main/java/org/tudelft/blockchain/booking/otawebapp/endpoint/PropertyOwnerController.java#L20), a [private channel is created](ota-webapp/src/main/java/org/tudelft/blockchain/booking/otawebapp/service/hyperledger/ChannelService.java#L47). Each channel has its own ledger. Within it, only parties, who have joined it can issue transactions. An example of this is shown in _Figure 4 _and _Figure 5._ After the channel is created, the Property Owner joins it and installs the chaincode on its peers (if not done already). The state of the channel is stored locally on the peer, in our case - a CouchDB instance.
+When a Property Owner registers his property by using [the REST API](ota-webapp/src/main/java/org/tudelft/blockchain/booking/otawebapp/endpoint/PropertyOwnerController.java#L20), a [private channel is created](ota-webapp/src/main/java/org/tudelft/blockchain/booking/otawebapp/service/hyperledger/ChannelService.java#L47). Each channel has its own ledger. Within it, only parties, who have joined it can issue transactions. An example of this is shown in _Figure 4_ and _Figure 5._ After the channel is created, the Property Owner joins it and installs the chaincode on its peers (if not done already). The state of the channel is stored locally on the peer, in our case - a CouchDB instance.
 
 
 ![Sample response from Chaincode](docs/architecture/response_body.png)
