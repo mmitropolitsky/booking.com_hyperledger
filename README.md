@@ -4,7 +4,7 @@
 
 Our team was presented with two problems: overbookings and government regulations, e.g. limiting the maximum amount of nights Property Owners can rent out their places each year. We have decided to focus only on the overbookings issue in order to be able to understand better the business case and build a suitable prototype. 
 
-The overbookings problem appears when properties are listed on multiple Online Travel Agencies (OTAs), e.g. Booking.com, Airbnb, etc. When a property is booked on any OTA platform, there is no mechanism to prevent booking it again on other OTAs' platforms. In order to provide synchronization between OTAs, collaboration among them is required. Such a partnership, though, demands to keep each OTA's specific business information private from their competitors.
+The overbookings problem appears when properties are listed on multiple Online Travel Agencies (OTAs), e.g. [Booking.com](https://www.booking.com), [Airbnb](https://www.airbnb.com/), etc. When a property is booked on any OTA platform, there is no mechanism to prevent booking it again on other OTAs' platforms. In order to provide synchronization between OTAs, collaboration among them is required. Such a partnership, though, demands to keep each OTA's specific business information private from their competitors.
 
 The case has four main business requirements:
 
@@ -25,7 +25,6 @@ Exploring opportunities with blockchain allows for a distributed solution which 
 The high-level idea for the solution is quite simple (_Figure 1_). A Property Owner can have many properties. Each property is represented by a private channel. A private channel is a private "subnet" of communication between parties. Only OTAs that work with that property are allowed to modify data, i.e. book dates via a smart contract.
 
 ![Solution overview](docs/architecture/solution_overview.PNG)
-
 _Figure 1: Solution Overview_
 
 A Property Owner can authorize OTAs to access this smart contract in order to check dates availability and perform bookings. The bookings are represented by transactions on the blockchain. Such authorization must also be revocable. For example, when a Property Owner no longer wishes to work with an OTA he should be able to revoke access of that OTA to the private channel of his property. No party outside that private channel (e.g. an OTA that does not work with that property and its owner) has any access to view or edit the data. All members of this channel should be able to query dates availability by reading the distributed ledger.
@@ -35,7 +34,7 @@ However, the issuer of the transaction, i.e. an OTA booking a date, does not wan
 
 #### **Permissioned blockchains**
 
-Public blockchains, like Bitcoin or Ethereum, are also called permissionless since anyone can join the network and issue transactions which will be written to the distributed ledger. Permissioned blockchains, on the other hand, require parties to be authorized to join the network, by other members or a governing organization. Once authorized they can read from or write to the ledger.
+Public blockchains, like [Bitcoin](https://bitcoin.org/en/) or [Ethereum](https://www.ethereum.org/), are also called permissionless since anyone can join the network and issue transactions which will be written to the distributed ledger. Permissioned blockchains, on the other hand, require parties to be authorized to join the network, by other members or a governing organization. Once authorized they can read from or write to the ledger.
 
 By assuming that the members of the network are trustworthy because they have been allowed to join the network, permissioned blockchains are able to opt for different ways to reach consensus than the global consensus protocols public blockchains use. These distributed protocols tend to be very expensive, in terms of computing power and system performance, and make public blockchain solutions very difficult to operate at scale.
 
@@ -58,7 +57,8 @@ Permissioned blockchains can use different protocols instead and offer higher sc
    </td>
   </tr>
   <tr>
-   <td>Bitcoin
+   <td>
+     <a href="https://bitcoin.org/en/">Bitcoin</a>
    </td>
    <td>7
    </td>
@@ -72,7 +72,8 @@ Permissioned blockchains can use different protocols instead and offer higher sc
    </td>
   </tr>
   <tr>
-   <td>TrustChain
+   <td>
+     <a href="https://www.tudelft.nl/technology-transfer/development-innovation/research-exhibition-projects/trustchain/">TrustChain</a>
    </td>
    <td>10,000
    </td>
@@ -86,7 +87,8 @@ Permissioned blockchains can use different protocols instead and offer higher sc
    </td>
   </tr>
   <tr>
-   <td>Ethereum
+   <td>
+     <a href="https://www.ethereum.org/">Ethereum</a>
    </td>
    <td>25 
    </td>
@@ -100,7 +102,8 @@ Permissioned blockchains can use different protocols instead and offer higher sc
    </td>
   </tr>
   <tr>
-   <td>Hyperledger
+   <td>
+     <a href="https://www.hyperledger.org/projects/fabric">Hyperledger Fabric</a>
    </td>
    <td>3500
    </td>
@@ -114,7 +117,8 @@ Permissioned blockchains can use different protocols instead and offer higher sc
    </td>
   </tr>
   <tr>
-   <td>R3 Corda
+   <td>
+     <a href="https://www.r3.com/corda-platform/">R3 Corda</a>
    </td>
    <td>178
    </td>
@@ -137,9 +141,9 @@ The fact that most of the Property Owners, that produce overbookings, are unreli
 
 Hyperledger Fabric is a blockchain framework implementation and one of the Hyperledger projects hosted by The Linux Foundation. At the time of writing, Hyperledger Fabric version is 1.4. The main reasons we chose Hyperledger Fabric is the promise of:
 
-- _Private channels_: in Fabric the network is divided into channels. Each channel has its own blockchain, accessible only to members of the channel. This provides the privacy aspect.
+- [_Private channels_](https://hyperledger-fabric.readthedocs.io/en/latest/channels.html): in Fabric the network is divided into channels. Each channel has its own blockchain, accessible only to members of the channel. This provides the privacy aspect.
 
-- _Zero Knowledge Proof Authentication_: Fabric supports actors of the network presenting ZKPs to validate that they are authorized to perform certain actions (e.g. executing a smart contract). This could provide the anonymity aspect.
+- [_Zero Knowledge Proof Authentication_](https://hyperledger-fabric.readthedocs.io/en/latest/idemix.html): Fabric supports actors of the network presenting ZKPs to validate that they are authorized to perform certain actions (e.g. executing a smart contract). This could provide the anonymity aspect.
 
 - Can accommodate Property Owners being offline and still have transactions being issued by having the OTAs maintain the ledger when they are not.
 
@@ -148,7 +152,7 @@ Hyperledger Fabric is a blockchain framework implementation and one of the Hyper
 
 #### **Architecture**
 
-In this part, more details about the architecture of a Hyperledger Fabric network and how we used it to implement our solution are going to be presented (_Figure 2_).
+In this part, more details about the [architecture](https://hyperledger-fabric.readthedocs.io/en/latest/arch-deep-dive.html) of a Hyperledger Fabric network and how we used it to implement our solution are going to be presented (_Figure 2_).
 
 Assume an existing network having members for each OTA and a Property Owner. Each OTA has several nodes in the network, each serving a different purpose.
 
@@ -165,7 +169,7 @@ _Figure 2: Architecture overview_
 
 **Transaction flow**
 
-The flow of a Fabric transaction is described in detail below and is shown in _Figure 3_. 
+The flow of a Fabric [transaction](https://hyperledger-fabric.readthedocs.io/en/latest/txflow.html) is described in detail below and is shown in _Figure 3_. 
 
 1. Propose a new transaction on a channel:
 *   Client application creates a transaction proposal (invoke a chaincode function)
@@ -188,7 +192,7 @@ _Figure 3: Fabric transaction flow_
 
 #### **Anonymity in Hyperledger 1.4**
 
-In order to provide anonymity for the users of the blockchain network, Hyperledger Fabric 1.4 offers an identity mixer module called Idemix. This module is integrated with their fabric-ca server implementation. It can be used to obtain Idemix credentials instead of traditional certificates. 
+In order to provide anonymity for the users of the blockchain network, Hyperledger Fabric 1.4 offers an identity mixer module called [Idemix](https://hyperledger-fabric.readthedocs.io/en/latest/idemix.html). This module is integrated with their fabric-ca server implementation. It can be used to obtain Idemix credentials instead of traditional certificates. 
 
 An Idemix credential is very similar to classic X.509 certificates widely in use nowadays: a set of attributes is signed with a signature that is tied to a secret key and cannot be forged and can be verified using a public key. The difference lies in the signature scheme used to construct the credentials. With Idemix credentials, a user can generate a proof that his credentials' attributes meet a certain condition without disclosing those attributes. This is a typical example of Zero-Knowledge proof (ZKP). 
 
