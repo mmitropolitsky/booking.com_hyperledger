@@ -222,7 +222,7 @@ _Figure 5: Sample response from the Chaincode_
 
 The next step is when an OTA is [joins the channel](ota-webapp/src/main/java/org/tudelft/blockchain/booking/otawebapp/service/PropertyService.java#L30). Before that moment every transaction should yield an "Access denied" response. When joining the channel, the OTA connects one (or more) of its peer nodes to it and the [chaincode is installed](ota-webapp/src/main/java/org/tudelft/blockchain/booking/otawebapp/service/hyperledger/ChainCodeService.java#L34) (if not already). 
 
-The peer then fetches a copy of the whole ledger of that channel and the OTA can now book dates for the property, represented by the channel. The same procedure occurs for every organization willing to join a channel. When an organization invokes the chaincode, the transaction flow presented in _Figure 3 _starts_.
+The peer then fetches a copy of the whole ledger of that channel and the OTA can now book dates for the property, represented by the channel. The same procedure occurs for every organization willing to join a channel. When an organization invokes the chaincode, the transaction flow presented in _Figure 3_ starts.
 
 The [chaincode](overbooking) has [one method](overbooking/src/main/java/org/tudelft/blockchain/booking/OverbookingChainCode.java#L49), which according to arguments provides two features. The first one is for [checking if a date range is available for booking](overbooking/src/main/java/org/tudelft/blockchain/booking/OverbookingChainCode.java#L123), and the second one for actually [booking them](overbooking/src/main/java/org/tudelft/blockchain/booking/OverbookingChainCode.java#L102).
 
