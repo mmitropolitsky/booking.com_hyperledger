@@ -1,17 +1,5 @@
 ## Solving the Overbooking problem with Hyperledger Fabric
 
-### Blockchain Engineering [CS4160]
-
-### TU Delft
-
-#### February 2019
-
-* Antal Száva, 4958489
-* Berenger Nguyen Nhon, 4956125
-* Maryam Tavakkoli, 4956222
-* Milko Mitropolitsky, 4958543
-* Viktoriya Kutsarova, 4958551
-
 ### **Problem**
 
 Our team was presented with two problems: overbookings and government regulations, e.g. limiting the maximum amount of nights Property Owners can rent out their places each year. We have decided to focus only on the overbookings issue in order to be able to understand better the business case and build a suitable prototype. 
@@ -151,7 +139,7 @@ Hyperledger Fabric is a blockchain framework implementation and one of the Hyper
 
 - _Private channels_: in Fabric the network is divided into channels. Each channel has its own blockchain, accessible only to members of the channel. This provides the privacy aspect.
 
-- _Zero Knowledge Proof Authentication_: Fabric supports actors of the network presenting ZKPs to validate that they are authorized to perform certain actions (e.g. executing a smart contract). This could provide the anonymity aspect.[^1]
+- _Zero Knowledge Proof Authentication_: Fabric supports actors of the network presenting ZKPs to validate that they are authorized to perform certain actions (e.g. executing a smart contract). This could provide the anonymity aspect.
 
 - Can accommodate Property Owners being offline and still have transactions being issued by having the OTAs maintain the ledger when they are not.
 
@@ -210,7 +198,7 @@ Hyperledger Fabric's Idemix, therefore, promises all necessary conditions regard
 
 Members use the cryptographic proof to verify that the particular OTA is authorized to perform the specified actions. One cannot tell that different transactions, signed by a given OTA using this method, were in fact signed by the same OTA either. 
 
-Further development and improvement of Idemix is a work in progress. In particular, support for hiding the user's organization is an open issue, planned for implementation in a future release by the Fabric development team[^2].
+Further development and improvement of Idemix is a work in progress. In particular, support for hiding the user's organization is an open issue, planned for implementation in a future release by the Fabric development team (Idemix selective attribute disclosure: [FAB-12759](https://jira.hyperledger.org/browse/FAB-12759) and [FABJ-154](https://jira.hyperledger.org/browse/FABJ-154)).
 
 Although the current implementation of Hyperledger Fabric does not deliver certain features that are of particular interest to this case, they are part of the design and will be available in the future. This is the reason why we decided to not focus on finding a workaround for this problem. The implications for the prototype network we present here is that an OTA can, in fact, see who issued the transactions in a channel.
 
@@ -328,7 +316,7 @@ In order to handle a transaction volume of 5 million bookings per day, the setup
 
 Each OTA would deploy more peer nodes, each connected to a small number of channels. With fewer channels to maintain, each of the peer nodes would effectively provide higher throughput for the corresponding chaincodes. This would also introduce redundancy of peers, which would be helpful in case of failure of a peer.
 
-Increasing the computing power of a peer node helps reduce the time it takes to execute the cryptographic operations needed to validate signatures[^3]. This would improve the effective time required to query dates availability for the first time.
+Increasing the computing power of a peer node helps reduce the time it takes to execute the cryptographic operations needed to validate signatures. This would improve the effective time required to query dates availability for the first time.
 
 Another option is adding a caching layer so that the number of requests is minimized. For example, if an OTA knows that certain dates are already booked, there is no point in querying the blockchain again to get the results.
 
@@ -345,14 +333,12 @@ The ordering service would need to be scaled following the same steps that are r
 #### **General comments**
 We have encountered the "enterprise" problem. We were either moving smoothly to the next step or very stuck. This is due to the fact that organizations, access control policies and certificate authorities are defined in configuration files. In those files, there is no validation whatsoever and in case we messed up something, it took a lot of time to find what is wrong. The error was not always clear and we took the approach of trial and error until we fix the issues.
 
-Some exceptions were not very informative. However, that turned out to be a design decision on Fabric's part. They are sometimes switching log messages with generic ones in order to prevent information leaks if someone is looking through the logs. That problem was solved for us with debugging the actual SDK or checking the logs of the actual Docker containers.
+Some exceptions were not very informative. However, that turned out to be a design decision on Fabric's part. They are sometimes switching log messages with generic ones in order to prevent information leaks if someone is looking through the logs. That problem was solved for us with debugging the actual SDK or checking the logs of the actual Docker containers. The behaviour is a design decision described in this ticket: [Unclear and generic error message](https://jira.hyperledger.org/plugins/servlet/mobile#issue/FAB-7952).
 
 The footprint for an organization is (a minimum of) 5 Docker containers (min. 1 Peer, 1 Orderer, 1 CouchDB instance for storing the ledger, 1 CA node and 1 instance of the chaincode).
 
 
 #### **Various Issues and difficulties**
-
-
 
 1. In the beginning, we were with the impression that chaincode needs to be instantiated for every channel (in our case channel represents a property). This was causing the creation of multiple Docker containers (as many properties as we had in our tests). Then we discovered that we need the chaincode installed on every peer, instantiated once per channel by one peer and the important fact that there is only one Docker container per peer (and it is used for each channel where the chaincode is instantiated).
 2. We were using only onkeepine CouchDB instance for all peers in our network, which is conceptually wrong. There should be a separate CouchDB instance per peer.
@@ -362,21 +348,18 @@ The footprint for an organization is (a minimum of) 5 Docker containers (min. 1 
 
 ### **Conclusion**
 
-
 Issues such as cumbersome setup of a Fabric network, scarce documentation and simplistic examples lead to development mainly driven by trial and error. Implementing such a system without a dedicated consultant would be a huge challenge. Functionalities, which have not yet been fully implemented stand in the way of fully utilizing the technology's potential. Even though Hyperledger Fabric shows great promise, it is not yet mature enough to sustain a production ready system which covers all our business requirements.
 
+### Blockchain Engineering [CS4160]
 
-<!-- Footnotes themselves at the bottom. -->
-## Notes
+### TU Delft
 
-[^1]:
-     Feature is not fully implemented, see section Anonymity for more information
+#### February 2019
 
-[^2]:
-     Idemix selective attribute disclosure: [https://jira.hyperledger.org/browse/FAB-12759](https://jira.hyperledger.org/browse/FAB-12759), [https://jira.hyperledger.org/browse/FABJ-154](https://jira.hyperledger.org/browse/FABJ-154) 
-
-[^3]:
-     Unclear and generic error message: [https://jira.hyperledger.org/plugins/servlet/mobile#issue/FAB-7952](https://jira.hyperledger.org/plugins/servlet/mobile#issue/FAB-7952) 
-
+* Antal Száva, 4958489
+* Berenger Nguyen Nhon, 4956125
+* Maryam Tavakkoli, 4956222
+* Milko Mitropolitsky, 4958543
+* Viktoriya Kutsarova, 4958551
 
 <!-- Docs to Markdown version 1.0β15 -->
