@@ -8,7 +8,7 @@ The overbookings problem appears when properties are listed on multiple Online T
 
 The case has four main business requirements:
 
-*   _Information sharing: _a way for OTAs to inform their competitors that given dates are no longer available after registering a booking
+*   _Information sharing_: a way for OTAs to inform their competitors that given dates are no longer available after registering a booking
 *   _Privacy_: only authorized parties, i.e. OTAs the owner decides to work with, can view and/or edit data regarding a certain property
 *   _Anonymity_: the dates availability should be shared in such a way that other OTAs reading the information should not know which of their competitors is behind the booking
 *   _Scalability_: the solution should be able to handle about 5 millions of transactions per day
@@ -207,27 +207,28 @@ When the features are released by Hyperledger Fabric, updating the network to th
 
 #### **Detailed workflow overview**
 
-Following is an example scenario depicting how all the elements work together to reach the blockchain solution we are proposing.
+Following is an example scenario depicting how all the elements work together to reach the blockchain solution we are proposing. Operations with the blockchain are done via [the Java webapp](/ota-webapp).
 
-For this scenario, we assume a running Hyperledger Fabric network. Assuming an existing network. Every organization has its own set of peer nodes, CAs, and databases for storing the ledger.
+For this scenario, we assume a running Hyperledger Fabric network. Every organization has its own set of peer nodes, CAs, and databases for storing the ledger. The network is started using [a set of configuration files and operations](booking-network-config).
 
 ![API UI with Swagger](docs/architecture/swagger.png)
 _Figure 4 API UI with Swagger_
 
-When a Property Owner registers his property, a private channel is created. Each channel has its own ledger. Within it, only parties, who have joined it can issue transactions. An example of this is shown in _Figure 4 _and _Figure 5._ After the channel is created, the Property Owner joins it and installs the chaincode on its peers (if not done already). The state of the channel is stored locally on the peer, in our case - in a CouchDB instance.
+When a Property Owner registers his property by using [the REST API](ota-webapp/src/main/java/org/tudelft/blockchain/booking/otawebapp/endpoint/PropertyOwnerController.java#L20), a [private channel is created](ota-webapp/src/main/java/org/tudelft/blockchain/booking/otawebapp/service/hyperledger/ChannelService.java#L47). Each channel has its own ledger. Within it, only parties, who have joined it can issue transactions. An example of this is shown in _Figure 4 _and _Figure 5._ After the channel is created, the Property Owner joins it and installs the chaincode on its peers (if not done already). The state of the channel is stored locally on the peer, in our case - a CouchDB instance.
 
 
 ![Sample response from Chaincode](docs/architecture/response_body.png)
 _Figure 5: Sample response from the Chaincode_
 
-The next step is when an OTA is authorized to join the channel. Before that moment every transaction should yield an "Access denied" response. When joining the channel, the OTA connects one (or more) of its peer nodes to it and the chaincode is installed (if not already). 
+The next step is when an OTA is [joins the channel](ota-webapp/src/main/java/org/tudelft/blockchain/booking/otawebapp/service/PropertyService.java#L30). Before that moment every transaction should yield an "Access denied" response. When joining the channel, the OTA connects one (or more) of its peer nodes to it and the [chaincode is installed](ota-webapp/src/main/java/org/tudelft/blockchain/booking/otawebapp/service/hyperledger/ChainCodeService.java#L34) (if not already). 
 
-The peer then fetches a copy of the whole ledger of that channel and the OTA can now book dates for the property, represented by the channel. The same procedure occurs for every organization willing to join a channel. When an organization invokes the chaincode, the transaction flow presented in _Figure 3 _starts_._
+The peer then fetches a copy of the whole ledger of that channel and the OTA can now book dates for the property, represented by the channel. The same procedure occurs for every organization willing to join a channel. When an organization invokes the chaincode, the transaction flow presented in _Figure 3 _starts_.
 
-To authenticate, an organization needs to get a certificate, issued by that organization's CA. That certificate proves that the issuer is indeed part of an authorized organization to the other members of the channel.
+The [chaincode](overbooking) has [one method](overbooking/src/main/java/org/tudelft/blockchain/booking/OverbookingChainCode.java#L49), which according to arguments provides two features. The first one is for [checking if a date range is available for booking](overbooking/src/main/java/org/tudelft/blockchain/booking/OverbookingChainCode.java#L123), and the second one for actually [booking them](overbooking/src/main/java/org/tudelft/blockchain/booking/OverbookingChainCode.java#L102).
+
+To authenticate, an organization needs to get a certificate, [issued by that organization's CA](ota-webapp/src/main/java/org/tudelft/blockchain/booking/otawebapp/service/OrganizationCredentialService.java#L92). That certificate proves that the issuer is indeed part of an authorized organization to the other members of the channel.
 
 With Idemix' current implementation anonymity within the channel extends only to which member of an organization is issuing the transaction. Hiding which organization this user belongs to is not currently supported, that part of our implementation is not possible.
-
 
 ### **Experiments**
 
@@ -341,7 +342,7 @@ The footprint for an organization is (a minimum of) 5 Docker containers (min. 1 
 #### **Various Issues and difficulties**
 
 1. In the beginning, we were with the impression that chaincode needs to be instantiated for every channel (in our case channel represents a property). This was causing the creation of multiple Docker containers (as many properties as we had in our tests). Then we discovered that we need the chaincode installed on every peer, instantiated once per channel by one peer and the important fact that there is only one Docker container per peer (and it is used for each channel where the chaincode is instantiated).
-2. We were using only onkeepine CouchDB instance for all peers in our network, which is conceptually wrong. There should be a separate CouchDB instance per peer.
+2. We were using only one CouchDB instance for all peers in our network, which is conceptually wrong. There should be a separate CouchDB instance per peer.
 3. The hyperledger SDK is lacking proper documentation. There is only one end to end test which was our main source of information.
 4. When installing the chaincode through the SDK, it required setting a manifest file, needed by the CouchDB. Since there were very few examples, it took quite some time to actually find out the needed content of the file. We discovered this again by trial and error.
 5. We have sent two bookings for the same property one after another (the second of which is an overbooking attempt) with a difference of less than 1s. In this case, the overbooking was not detected and the transaction was added to the ledger. In the logs, we discovered that a PHANTOM_READ error appeared on the peers and the transaction was marked as invalid by them. Nevertheless, the ordering service broadcasted it and it was appended to the chain.
