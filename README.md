@@ -161,7 +161,7 @@ Assume an existing network having members for each OTA and a Property Owner. Eac
 *   _[Chaincode](https://hyperledger-fabric.readthedocs.io/en/release-1.4/smartcontract/smartcontract.html)_: in Hyperledger Fabric, smart contracts are called _chaincode_. A smart contract is a program, which is shared on the blockchain and can enforce rules that were programmed in them.
     *   _For example: verifying that a certain date is available for a booking transaction to be valid, otherwise, reject it._
 *   _[Peers](https://hyperledger-fabric.readthedocs.io/en/release-1.4/peers/peers.html)_: in Fabric, different machines are connected to the network. Each must present certificates signed by an authorized organization in order to connect in the first place. _Peer nodes_ are the main type of nodes in a Fabric network. These nodes are responsible for maintaining the Ledger, i.e. the blockchain, by recording the transactions that are committed. Smart contracts must be installed on these peer nodes in order for them to execute their functions.
-*   _Orderers_: for the peer nodes to maintain the ledger, the transactions that they record must be ordered, with a way to reach consensus on this order. This is the role of the _orderer nodes_ that constitute the _ordering service_. Valid transactions are sent to this ordering service which decides on their order and sends them in the form of blocks to the peer nodes which add them to the existing chain.
+*   _[Orderers](https://hyperledger-fabric.readthedocs.io/en/latest/arch-deep-dive.html#ordering-service-nodes-orderers)_: for the peer nodes to maintain the ledger, the transactions that they record must be ordered, with a way to reach consensus on this order. This is the role of the _orderer nodes_ that constitute the _ordering service_. Valid transactions are sent to this ordering service which decides on their order and sends them in the form of blocks to the peer nodes which add them to the existing chain.
     *   The orderer nodes can be backed by a Kafka / Zookeeper deployment to provide total ordered message brokerage with higher performance and scalability. The ordering service can be run by a separate organization or distributed across all OTAs that will run it collectively.
 
 ![Architecture Overview](docs/architecture/New_architecture_overview.jpg)
@@ -234,7 +234,7 @@ To authenticate, an organization needs to get a certificate, [issued by that org
 
 With Idemix' current implementation anonymity within the channel extends only to which member of an organization is issuing the transaction. Hiding which organization this user belongs to is not currently supported, that part of our implementation is not possible.
 
-[A visual guideline](https://nbviewer.jupyter.org/github/pumicerD/blockchain_booking/blob/ea54525bef5cb93574e66f66e2b519bf969b0724/Architecture.pdf) to the architecture with linkability to codes, can be sen here.
+[A visual guideline](https://nbviewer.jupyter.org/github/pumicerD/blockchain_booking/blob/ea54525bef5cb93574e66f66e2b519bf969b0724/Architecture.pdf) to the architecture with linkability to source code can be sen here.
 
 
 ### **Experiments**
