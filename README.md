@@ -234,6 +234,9 @@ To authenticate, an organization needs to get a certificate, [issued by that org
 
 With Idemix' current implementation anonymity within the channel extends only to which member of an organization is issuing the transaction. Hiding which organization this user belongs to is not currently supported, that part of our implementation is not possible.
 
+A visual guideline to the architecture with linkability to codes, can be sen here:
+https://nbviewer.jupyter.org/github/pumicerD/blockchain_booking/blob/ea54525bef5cb93574e66f66e2b519bf969b0724/Architecture.pdf
+
 ### **Experiments**
 
 Our initial testing and verification involved only manual testing using our REST API. Its usage is showcased in _Figure 4_ and _Figure 5._ We also used a tool, provided by Hyperledger - Hyperledger Explorer (shown in _Figure 6_), which displays the actual transactions contained in the blocks that were added to the blockchain. 
