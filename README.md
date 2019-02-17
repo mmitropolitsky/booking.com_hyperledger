@@ -232,7 +232,7 @@ The [chaincode](overbooking) has [one method](overbooking/src/main/java/org/tude
 
 To authenticate, an organization needs to get a certificate, [issued by that organization's CA](ota-webapp/src/main/java/org/tudelft/blockchain/booking/otawebapp/service/OrganizationCredentialService.java#L92). That certificate proves that the issuer is indeed part of an authorized organization to the other members of the channel.
 
-With Idemix' current implementation anonymity within the channel extends only to which member of an organization is issuing the transaction. Hiding which organization this user belongs to is not currently supported, that part of our implementation is not possible.
+With Idemix's current implementation anonymity within the channel extends only to which member of an organization is issuing the transaction. Hiding which organization this user belongs to is not currently supported, that part of our implementation is not possible.
 
 [A visual guideline](https://nbviewer.jupyter.org/github/pumicerD/blockchain_booking/blob/ea54525bef5cb93574e66f66e2b519bf969b0724/Architecture.pdf) to the architecture with linkability to source code can be sen here.
 
