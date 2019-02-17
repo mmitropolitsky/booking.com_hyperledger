@@ -246,7 +246,7 @@ Afterwards, we decided to write a functional test over an integration test, as i
 ![Hyperledger Explorer Dashboard](docs/architecture/blockchain_explorer_dashboard.png)
 _Figure 6: Sample view of Hyperledger Explorer_
 
-We were provided with a sample dataset consisting of 50 properties and 500 bookings on which we ran the functional test. 266 of the bookings were detected as overbookings and therefore rejected by the network as invalid transactions. The results were verified by a simple unit test, that traversed the dataset and counted the overbookings.
+We were provided with a sample dataset consisting of 50 properties and 500 bookings on which we ran the functional test. 266 of the bookings were detected as overbookings and therefore rejected by the network as invalid transactions. The results were verified by a [simple unit test](https://github.com/pumicerD/blockchain_booking/blob/master/ota-webapp/src/test/java/org/tudelft/blockchain/booking/otawebapp/overbooking/OverbookingsTest.java), that traversed the dataset and counted the overbookings.
 
 
 <table>
