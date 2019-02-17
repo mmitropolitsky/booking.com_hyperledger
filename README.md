@@ -232,7 +232,7 @@ The [chaincode](overbooking) has [one method](overbooking/src/main/java/org/tude
 
 To authenticate, an organization needs to get a certificate, [issued by that organization's CA](ota-webapp/src/main/java/org/tudelft/blockchain/booking/otawebapp/service/OrganizationCredentialService.java#L92). That certificate proves that the issuer is indeed part of an authorized organization to the other members of the channel.
 
-With Idemix's current implementation anonymity within the channel extends only to which member of an organization is issuing the transaction. Hiding which organization this user belongs to is not currently supported, that part of our implementation is not possible.
+With Idemix's current implementation, anonymity within the channel extends only to which member of an organization is issuing the transaction. The feature of hiding which organization this specific user belongs to is not currently supported, hence -that part of the implementation is not possible.
 
 [A visual guideline](https://nbviewer.jupyter.org/github/pumicerD/blockchain_booking/blob/ea54525bef5cb93574e66f66e2b519bf969b0724/Architecture.pdf) to the architecture with linkability to source code can be sen here.
 
@@ -348,7 +348,7 @@ The footprint for an organization is (a minimum of) 5 Docker containers (min. 1 
 
 #### **Various Issues and difficulties**
 
-1. In the beginning, we were with the impression that chaincode needs to be instantiated for every channel (in our case channel represents a property). This was causing the creation of multiple Docker containers (as many properties as we had in our tests). Then we discovered that we need the chaincode installed on every peer, instantiated once per channel by one peer and the important fact that there is only one Docker container per peer (and it is used for each channel where the chaincode is instantiated).
+1. In the beginning, we were with the impression that the chaincode needs to be instantiated for every channel (in our case channel represents a property). This was causing the creation of multiple Docker containers (as many properties as we had in our tests). Then we discovered that we need the chaincode installed on every peer, instantiated once per channel by one peer and the important fact that there is only one Docker container per peer (and it is used for each channel where the chaincode is instantiated).
 2. We were using only one CouchDB instance for all peers in our network, which is conceptually wrong. There should be a separate CouchDB instance per peer.
 3. The hyperledger SDK is lacking proper documentation. There is only one end to end test which was our main source of information.
 4. When installing the chaincode through the SDK, it required setting a manifest file, needed by the CouchDB. Since there were very few examples, it took quite some time to actually find out the needed content of the file. We discovered this again by trial and error.
