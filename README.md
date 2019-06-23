@@ -365,10 +365,10 @@ Issues such as cumbersome setup of a Fabric network, scarce documentation and si
 
 #### February 2019
 
-* Antal Száva, 4958489
-* Berenger Nguyen Nhon, 4956125
-* Maryam Tavakkoli, 4956222
-* Milko Mitropolitsky, 4958543
-* Viktoriya Kutsarova, 4958551
+* Antal Száva
+* Berenger Nguyen Nhon
+* Maryam Tavakkoli
+* Milko Mitropolitsky
+* Viktoriya Kutsarova
 
 <!-- Docs to Markdown version 1.0β15 -->
