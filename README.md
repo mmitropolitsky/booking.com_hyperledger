@@ -2,7 +2,7 @@
 
 ### **Problem**
 
-Our team was presented with two problems: overbookings and government regulations, e.g. limiting the maximum amount of nights Property Owners can rent out their places each year. We have decided to focus only on the overbookings issue in order to be able to understand better the business case and build a suitable prototype. 
+Our team was presented with two problems: overbookings and government regulations, e.g. limiting the maximum amount of nights Property Owners can rent out their places each year ([Problem statement from stakeholders](https://github.com/Tribler/tribler/issues/3909#issuecomment-434795049)). We have decided to focus only on the overbookings issue in order to be able to understand better the business case and build a suitable prototype. 
 
 The overbookings problem appears when properties are listed on multiple Online Travel Agencies (OTAs), e.g. [Booking.com](https://www.booking.com), [Airbnb](https://www.airbnb.com/), etc. When a property is booked on any OTA platform, there is no mechanism to prevent booking it again on other OTAs' platforms. In order to provide synchronization between OTAs, collaboration among them is required. Such a partnership, though, demands to keep each OTA's specific business information private from their competitors.
 
